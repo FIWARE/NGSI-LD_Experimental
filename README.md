@@ -14,4 +14,6 @@ sbt compile
 sbt jetty:start
 ```
 
-```sbt test```
+```console
+sbt test
+```
