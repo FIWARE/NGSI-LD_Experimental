@@ -1,7 +1,7 @@
 # NGSI-LD_Wrapper
 NGSI-LD Wrapper implemented in Scala
 
-## How to build
+## How to build / test
 
 ### Prerequisites
 
@@ -11,6 +11,7 @@ NGSI-LD Wrapper implemented in Scala
 
 ```console
 sbt compile
-
 sbt jetty:start
 ```
+
+```sbt test```
