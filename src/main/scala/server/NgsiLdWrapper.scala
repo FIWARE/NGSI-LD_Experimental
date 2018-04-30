@@ -4,6 +4,18 @@ import org.scalatra._
 import fiware._
 import json._
 
+/**
+  *
+  *  Root class that offers access to the different resources
+  *
+  *  Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  *  Author: José M. Cantera
+  *
+  *  LICENSE: MIT
+  *
+  *
+  */
 class NgsiLdWrapper extends ScalatraServlet {
 
   val base = "/ngsi-ld/v1"
