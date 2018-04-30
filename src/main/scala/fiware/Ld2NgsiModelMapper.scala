@@ -2,6 +2,18 @@ package fiware
 
 import scala.collection.mutable
 
+/**
+  *
+  *  Data Mapper from NGSI-LD to NGSI information models
+  *
+  *  Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  *  Author: José M. Cantera
+  *
+  *  LICENSE: MIT
+  *
+  *
+  */
 object Ld2NgsiModelMapper extends Mapper {
 
   def parse_urn(urn:String) = {

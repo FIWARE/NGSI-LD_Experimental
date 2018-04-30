@@ -1,5 +1,16 @@
 package json
 
+import scala.util.parsing.combinator.JavaTokenParsers
+
+
+/**
+  *
+  *  JSON Parser
+  *
+  *  (Adapted from example in the book "Programming in Scala" by Odersky and others)
+  *
+  *
+  */
 class JSONParser extends JavaTokenParsers {
 
   def obj: Parser[Map[String, Any]] =

@@ -1,5 +1,18 @@
 package fiware
 
+import org.scalatest.FunSuite
+
+/**
+  *
+  *  Test the LD to NGSI data mapper
+  *
+  *  Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  *  Author: José M. Cantera
+  *
+  *  LICENSE: MIT
+  *
+  */
 class Ld2NgsiTestSuite extends FunSuite {
 
   def urn(id:String,t:String) = {
@@ -20,7 +33,7 @@ class Ld2NgsiTestSuite extends FunSuite {
   "location" -> Map("type" -> "GeoProperty", "value" -> Map("type" -> "Point", "coordinates" -> List(-4.0,41.0)))
   )
 
-  val result = Ngsi2LdModelMapper.toNgsi(testNgsiLdData)
+  val result = Ld2NgsiModelMapper.toNgsi(testNgsiLdData)
 
   // Console.println(JsonSerializer.serialize(result))
 

@@ -1,5 +1,18 @@
 package fiware
 
+import org.scalatest.FunSuite
+
+/**
+  *
+  *  Test the NGSI to NGSI-LD data mapper
+  *
+  *  Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  *  Author: José M. Cantera
+  *
+  *  LICENSE: MIT
+  *
+  */
 class Ngsi2LdTestSuite extends FunSuite {
 
   // TODO: Divide in different simple and smaller cases

@@ -2,30 +2,42 @@ package json
 
 import scala.collection.mutable.ArrayBuffer
 
-
-object JsonSerializer {
+/**
+  *
+  *  JSON Serializer
+  *
+  *  Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  *  Author: José M. Cantera
+  *
+  *  LICENSE: MIT
+  *
+  */
+object JSONSerializer {
   def serialize(member:Any):String = {
-    if (member.isInstanceOf[List[Any]]) {
-      val buf = new StringBuffer("[")
-      val asList = member.asInstanceOf[List[Any]]
-      val serList = new ArrayBuffer[String]()
-      asList foreach(item => {
-        serList += serialize(item)
-      })
-      buf.append(serList.mkString(",")).append("]").toString
-    }
-    else if (member.isInstanceOf[Map[String,Any]]) {
-      val map = member.asInstanceOf[Map[String,Any]]
-      val list = new ArrayBuffer[String]()
-      map foreach (x => {
-        val buf = new StringBuffer()
-        buf.append("\"").append(x._1).append("\"").append(":")
-        list += (buf.append(serialize(x._2)).toString)
-      })
-      s"{\n${list.mkString(",\n")}}"
-    }
-    else {
-      f(member).toString
+    member match {
+      case xs: List[Any] => {
+        val buf = new StringBuffer("[")
+        val asList = member.asInstanceOf[List[Any]]
+        val serList = new ArrayBuffer[String]()
+        asList foreach(item => {
+          serList += serialize(item)
+        })
+        buf.append(serList.mkString(",")).append("]").toString
+      }
+      case xs: Map[String,Any] => {
+        val map = member.asInstanceOf[Map[String,Any]]
+        val list = new ArrayBuffer[String]()
+        map foreach (x => {
+          val buf = new StringBuffer()
+          buf.append("\"").append(x._1).append("\"").append(":")
+          list += (buf.append(serialize(x._2)).toString)
+        })
+        s"{${list.mkString(",")}}"
+      }
+      case _ => {
+        f(member).toString
+      }
     }
   }
 
