@@ -24,7 +24,11 @@ class Ngsi2LdTestSuite extends FunSuite {
       "metadata" -> Map("accuracy" -> Map("value" -> 0.89),
         "timestamp" -> Map("value" -> "2018-04-23T12:00:00",
           "type" -> "DateTime"),
-        "providedBy" -> Map("type" -> "Reference", "value" -> "4567"))))
+        "providedBy" -> Map("type" -> "Reference", "value" -> "4567"))),
+    "location" -> Map("type" -> "geo:json","value" -> Map("type" -> "Point", "coordinates" -> List(-4,55))),
+    "boughtAt" -> Map("type" -> "DateTime","value" -> "2018-02-02T12:00:00"),
+    "typelessAttr" -> Map("value" -> "hello")
+  )
 
   val result = Ngsi2LdModelMapper.fromNgsi(testData)
 
@@ -71,5 +75,22 @@ class Ngsi2LdTestSuite extends FunSuite {
   test("Metadata of type reference or relationship should be mapped to relationship of property") {
     assert(node(node(result("speed"))("providedBy"))("type") == "Relationship")
     assert(node(node(result("speed"))("providedBy"))("object") == "urn:ngsi-ld:Thing:4567")
+  }
+
+  test("Properties of type geo:json should be converted to GeoProperty") {
+    assert(node(result("location"))("type") == "GeoProperty")
+  }
+
+  test("Properties of type geo:json. GeoJSON content should be left as it is") {
+    assert(node(node(result("location"))("value"))("type") == "Point")
+    assert(node(node(result("location"))("value"))("coordinates") == List(-4,55))
+  }
+
+  test("Properties of type DateTime should be converted to TemporalProperty") {
+    assert(node(result("boughtAt"))("type") == "TemporalProperty")
+  }
+
+  test("Typeless attributes should be converted to Property") {
+    assert(node(result("typelessAttr"))("type") == "Property")
   }
 }

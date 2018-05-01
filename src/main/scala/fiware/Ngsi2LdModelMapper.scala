@@ -45,9 +45,13 @@ object Ngsi2LdModelMapper extends Mapper {
             case _ => out = (p, "Property", "value")
           }
           val declType = auxIn.getOrElse("type", "Property")
-          if (declType == "Relationship" || declType == "Reference")
-            out = rel_member(p)
-
+          declType match {
+            case "Relationship" => out = rel_member(p)
+            case "Reference"  => out = rel_member(p)
+            case "geo:json" => out = (p,"GeoProperty","value")
+            case "DateTime" => out = (p,"TemporalProperty","value")
+            case _ => Nil
+          }
           out
         }) (prop)
 
