@@ -4,6 +4,8 @@ import org.scalatra._
 import fiware._
 import json._
 import utils.NgsiClient
+import scala.collection.mutable
+
 
 /**
   *
@@ -20,54 +22,100 @@ import utils.NgsiClient
 class NgsiLdWrapper extends ScalatraServlet {
 
   // Empty API base
-  val base = ""
-  val jsonMimeType = Map("Content-Type" -> "application/json")
+  val Base = "/api"
+  val JsonMimeType = Map("Content-Type" -> "application/json")
+  val Version = "0.1"
 
-  get("/version") {
-    val versionData = Map("version" -> "0.1")
-    Ok(JSONSerializer.serialize(versionData), jsonMimeType)
+  val KeyValues = "keyValues"
+
+  def toNgsiLd(in:Map[String,Any]) = {
+    if (mode == KeyValues) in
+    else Ngsi2LdModelMapper.fromNgsi(in)
   }
 
-  get(s"${base}/entities") {
+  def mode() = {
+    var options = params.getOrElse("options",null)
+    if(options != null) if (options.split(",").indexOf(KeyValues) != -1) options = KeyValues
+
+    options
+  }
+
+  get(s"${Base}/") {
+    val out = Map(
+      "entities" -> s"${Base}/entities",
+      "subscriptions" -> s"${Base}/subscriptions",
+      "csources" -> s"${Base}/csources"
+    )
+
+    Ok(JSONSerializer.serialize(out),JsonMimeType)
+  }
+
+  get("/version") {
+    val versionData = Map("version" -> Version)
+    Ok(JSONSerializer.serialize(versionData), JsonMimeType)
+  }
+
+  get(s"${Base}/entities") {
     val t = params.getOrElse("type", null)
 
     if (t == null) {
-      // status(400);
+      BadRequest(JSONSerializer.serialize(Map("type" -> "BadRequest")),JsonMimeType)
     }
-
-    val myData = Map("a" -> 45, "b" -> "hola")
-    Ok(JSONSerializer.serialize(myData),jsonMimeType)
+    else {
+      val queryString = request.getQueryString
+      val result = NgsiClient.queryEntities(queryString)
+      result.code match {
+        case 200 => {
+          val data = result.data.asInstanceOf[List[Map[String,Any]]]
+          val out = mutable.ArrayBuffer[Map[String,Any]]()
+          for (item <- data) {
+            out += toNgsiLd(item)
+          }
+          Ok(JSONSerializer.serialize(out.toList),JsonMimeType)
+        }
+        case 400 => {
+          BadRequest(JSONSerializer.serialize(Map("type" -> "BadRequest")),JsonMimeType)
+        }
+      }
+    }
   }
 
   // Entity by id
-  get(s"${base}/entities/:id") {
+  get(s"${Base}/entities/:id") {
     val id = params("id")
 
-    val data = NgsiClient.entityById(id)
+    val queryString = request.getQueryString
 
-    val ldData = Ngsi2LdModelMapper.fromNgsi(data)
+    val result = NgsiClient.entityById(id,queryString)
 
-    Ok(JSONSerializer.serialize(ldData),jsonMimeType)
+    result.code match {
+      case 200 => {
+        val ldData = toNgsiLd(result.data.asInstanceOf[Map[String,Any]])
+
+        Ok(JSONSerializer.serialize(ldData),JsonMimeType)
+      }
+      case 404 => NotFound(JSONSerializer.serialize(Map("type" -> "NotFound")),JsonMimeType)
+    }
   }
 
   // Subscriptions
-  get(s"${base}/subscriptions") {
+  get(s"${Base}/subscriptions") {
     val myData = Map("a" -> 45, "b" -> "hola")
-    Ok(JSONSerializer.serialize(myData), jsonMimeType)
+    Ok(JSONSerializer.serialize(myData), JsonMimeType)
   }
 
   // Csources
-  get(s"${base}/csources") {
+  get(s"${Base}/csources") {
     val myData = Map("a" -> 45, "b" -> "hola")
-    Ok(JSONSerializer.serialize(myData),jsonMimeType)
+    Ok(JSONSerializer.serialize(myData),JsonMimeType)
   }
 
   // Delete entity by id
-  delete(s"${base}/entities/:id") {
+  delete(s"${Base}/entities/:id") {
 
   }
 
-  patch(s"${base}/entities/:id/attrs") {
+  patch(s"${Base}/entities/:id/attrs") {
 
   }
 }

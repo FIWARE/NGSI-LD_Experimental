@@ -15,7 +15,7 @@ object NgsiClient {
   }
 
   def queryEntities(query:String,tenant:String="") = {
-    val getRequest = new HttpGet(s"${apiBase}/entities")
+    val getRequest = new HttpGet(s"${apiBase}/entities?${query}")
 
     if (tenant.length > 0) {
       getRequest.setHeader("Fiware-Service", tenant)
@@ -24,14 +24,16 @@ object NgsiClient {
     // send the GET request
     val httpClient = HttpClientBuilder.create().build()
     val result = httpClient.execute(getRequest)
-    println (s"HTTStatus: ${result.getStatusLine.getStatusCode}")
-    println (s"${result.getHeaders("Content-Type")(0).getValue}")
 
-    EntityUtils.toString(result.getEntity, "UTF-8")
+    if (result.getStatusLine.getStatusCode == 200) {
+      val entityData = EntityUtils.toString(result.getEntity, "UTF-8")
+      NgsiResult(200, ParserUtil.parse(entityData))
+    }
+    else NgsiResult(result.getStatusLine.getStatusCode,null)
   }
 
-  def entityById(id:String,tenant:String="") = {
-    val getRequest = new HttpGet(s"${apiBase}/entities/${id}")
+  def entityById(id:String,queryString:String,tenant:String="") = {
+    val getRequest = new HttpGet(s"${apiBase}/entities/${id}?${queryString}")
 
     if (tenant.length > 0) {
       getRequest.setHeader("Fiware-Service", tenant)
@@ -41,8 +43,12 @@ object NgsiClient {
     val httpClient = HttpClientBuilder.create().build()
     val result = httpClient.execute(getRequest)
 
-    val entityData = EntityUtils.toString(result.getEntity, "UTF-8")
-    ParserUtil.parse(entityData).asInstanceOf[Map[String,Any]]
+    if (result.getStatusLine.getStatusCode == 200) {
+      val entityData = EntityUtils.toString(result.getEntity, "UTF-8")
+      NgsiResult(200, ParserUtil.parse(entityData))
+    }
+    else NgsiResult(result.getStatusLine.getStatusCode,null)
+
   }
 
   def createEntity(entityData:Map[String,Any],tenant:String=null) = {
