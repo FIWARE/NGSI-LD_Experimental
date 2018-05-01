@@ -1,6 +1,6 @@
 import javax.servlet.ServletContext
 import org.scalatra._
-import server.NgsiLdWrapper
+import rest.NgsiLdWrapper
 
 /**
   *

@@ -34,6 +34,11 @@ class JSONParserTestSuite extends FunSuite {
     assert(parse(data) == 45)
   }
 
+  test("Should parse a single floating point number") {
+    val data = "1.45"
+    assert(parse(data) == 1.45)
+  }
+
   test("Should parse list") {
     val data = "[34,67,89]"
     assert(parse(data) == List(34,67,89))

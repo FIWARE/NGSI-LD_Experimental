@@ -33,8 +33,9 @@ class JSONParser extends JavaTokenParsers {
         // Remove quotes
         x.substring(1, x.length - 1)
       })
-      | decimalNumber ^^ (_.toLong)
+      | decimalNumber ^^ (_.toDouble)
       | floatingPointNumber ^^ (_.toDouble)
+      | wholeNumber ^^ (_.toLong)
       | "null"  ^^ (x => null)
       | "true"  ^^ (x => true)
       | "false" ^^ (x => false)
