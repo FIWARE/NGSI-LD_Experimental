@@ -1,6 +1,9 @@
 package utils
 
-import org.apache.http.client.methods.HttpGet
+import json.JSONSerializer
+import org.apache.http.HttpEntity
+import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost}
+import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
 
@@ -52,7 +55,15 @@ object NgsiClient {
   }
 
   def createEntity(entityData:Map[String,Any],tenant:String=null) = {
+    val data = JSONSerializer.serialize(entityData)
+    val postRequest = new HttpPost(s"${apiBase}/entities/")
 
+    postRequest.setHeader("Content-Type","application/json")
+    postRequest.setEntity(new StringEntity(data))
+
+    // send the POST request
+    val httpClient = HttpClientBuilder.create().build()
+    httpClient.execute(postRequest)
   }
 
   def appendAttributes() = {
@@ -64,6 +75,50 @@ object NgsiClient {
   }
 
   def deleteEntity(id:String,tenant:String=null) = {
+    val delRequest = new HttpDelete(s"${apiBase}/entities/${id}")
+
+    // send the GET request
+    val httpClient = HttpClientBuilder.create().build()
+    httpClient.execute(delRequest)
+  }
+
+  def createSubscription() = {
+
+  }
+
+  def querySubscriptions() = {
+
+  }
+
+  def updateSubscription() = {
+
+  }
+
+  def subscriptionById() = {
+
+  }
+
+  def removeSubscription() = {
+
+  }
+
+  def createRegistration() = {
+
+  }
+
+  def queryRegistrations() = {
+
+  }
+
+  def updateRegistrations() = {
+
+  }
+
+  def registrationById() = {
+
+  }
+
+  def removeRegistration() = {
 
   }
 }

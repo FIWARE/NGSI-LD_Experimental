@@ -3,7 +3,9 @@ package rest
 import org.scalatra._
 import fiware._
 import json._
-import utils.NgsiClient
+import org.apache.http.util.EntityUtils
+import utils._
+
 import scala.collection.mutable
 
 
@@ -35,16 +37,18 @@ class NgsiLdWrapper extends ScalatraServlet {
 
   def mode() = {
     var options = params.getOrElse("options",null)
-    if(options != null) if (options.split(",").indexOf(KeyValues) != -1) options = KeyValues
+    if(options != null)
+      if (options.split(",").indexOf(KeyValues) != -1)
+        options = KeyValues
 
     options
   }
 
   get(s"${Base}/") {
     val out = Map(
-      "entities" -> s"${Base}/entities",
-      "subscriptions" -> s"${Base}/subscriptions",
-      "csources" -> s"${Base}/csources"
+      "entities" -> s"${Base}/entities/",
+      "subscriptions" -> s"${Base}/subscriptions/",
+      "csources" -> s"${Base}/csources/"
     )
 
     Ok(JSONSerializer.serialize(out),JsonMimeType)
@@ -55,7 +59,20 @@ class NgsiLdWrapper extends ScalatraServlet {
     Ok(JSONSerializer.serialize(versionData), JsonMimeType)
   }
 
-  get(s"${Base}/entities") {
+  post(s"${Base}/entities/") {
+    val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
+
+    Console.println(Ld2NgsiModelMapper.toNgsi(data))
+    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data))
+
+    result.getStatusLine.getStatusCode match {
+      case 201 => Created(null,Map("Location" -> s"${Base}/entities/${data("id")}"))
+      case 400 => BadRequest(EntityUtils.toString(result.getEntity, "UTF-8"),JsonMimeType)
+      case _ => InternalServerError()
+    }
+  }
+
+  get(s"${Base}/entities/") {
     val t = params.getOrElse("type", null)
 
     if (t == null) {
@@ -99,20 +116,26 @@ class NgsiLdWrapper extends ScalatraServlet {
   }
 
   // Subscriptions
-  get(s"${Base}/subscriptions") {
+  get(s"${Base}/subscriptions/") {
     val myData = Map("a" -> 45, "b" -> "hola")
     Ok(JSONSerializer.serialize(myData), JsonMimeType)
   }
 
   // Csources
-  get(s"${Base}/csources") {
+  get(s"${Base}/csources/") {
     val myData = Map("a" -> 45, "b" -> "hola")
     Ok(JSONSerializer.serialize(myData),JsonMimeType)
   }
 
   // Delete entity by id
   delete(s"${Base}/entities/:id") {
+    val result = NgsiClient.deleteEntity(params("id"))
 
+    result.getStatusLine.getStatusCode match {
+      case 204 => NoContent(Map.empty)
+      case 404 => NotFound(JSONSerializer.serialize(Map("type" -> "NotFound")),JsonMimeType)
+      case _ => InternalServerError
+    }
   }
 
   patch(s"${Base}/entities/:id/attrs") {
