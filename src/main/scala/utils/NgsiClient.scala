@@ -1,7 +1,6 @@
 package utils
 
 import json.JSONSerializer
-import org.apache.http.HttpEntity
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClientBuilder
@@ -17,12 +16,17 @@ object NgsiClient {
     apiBase = s"${currentEndpoint}${ngsiBase}"
   }
 
-  def queryEntities(query:String,tenant:String="") = {
+  def tenant(tenant:Option[String],httpGet: HttpGet) = {
+    val tenantHeader = tenant.getOrElse("")
+    if (tenantHeader.length > 0) {
+      httpGet.setHeader("Fiware-Service", tenantHeader)
+    }
+  }
+
+  def queryEntities(query:String,tenant:Option[String]=None) = {
     val getRequest = new HttpGet(s"${apiBase}/entities?${query}")
 
-    if (tenant.length > 0) {
-      getRequest.setHeader("Fiware-Service", tenant)
-    }
+    this.tenant(tenant,getRequest)
 
     // send the GET request
     val httpClient = HttpClientBuilder.create().build()
@@ -39,12 +43,10 @@ object NgsiClient {
     if (queryString == null) "" else queryString
   }
 
-  def entityById(id:String,queryString:String,tenant:String="") = {
+  def entityById(id:String,queryString:String,tenant:Option[String]=None) = {
     val getRequest = new HttpGet(s"${apiBase}/entities/${id}?${queryStr(queryString)}")
 
-    if (tenant.length > 0) {
-      getRequest.setHeader("Fiware-Service", tenant)
-    }
+    this.tenant(tenant,getRequest)
 
     // send the GET request
     val httpClient = HttpClientBuilder.create().build()
@@ -58,7 +60,7 @@ object NgsiClient {
       NgsiResult(result.getStatusLine.getStatusCode,None,result.getEntity)
   }
 
-  def createEntity(entityData:Map[String,Any],tenant:String=null) = {
+  def createEntity(entityData:Map[String,Any],tenant:Option[String]=None) = {
     val data = JSONSerializer.serialize(entityData)
     val postRequest = new HttpPost(s"${apiBase}/entities/")
 
@@ -78,7 +80,7 @@ object NgsiClient {
 
   }
 
-  def deleteEntity(id:String,tenant:String=null) = {
+  def deleteEntity(id:String,tenant:Option[String]=None) = {
     val delRequest = new HttpDelete(s"${apiBase}/entities/${id}")
 
     // send the GET request
