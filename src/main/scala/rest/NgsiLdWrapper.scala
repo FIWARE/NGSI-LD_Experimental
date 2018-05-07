@@ -100,7 +100,6 @@ class NgsiLdWrapper extends ScalatraServlet {
   // Entity by id
   get(s"${Base}/entities/:id") {
     val id = params("id")
-
     val queryString = request.getQueryString
 
     val result = NgsiClient.entityById(id,queryString)
@@ -112,6 +111,7 @@ class NgsiLdWrapper extends ScalatraServlet {
         Ok(JSONSerializer.serialize(ldData),JsonMimeType)
       }
       case 404 => NotFound(JSONSerializer.serialize(Map("type" -> "NotFound")),JsonMimeType)
+      case _ => InternalServerError()
     }
   }
 

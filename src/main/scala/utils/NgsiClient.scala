@@ -35,8 +35,12 @@ object NgsiClient {
     else NgsiResult(result.getStatusLine.getStatusCode,null)
   }
 
+  def queryStr(queryString:String) = {
+    if (queryString == null) "" else queryString
+  }
+
   def entityById(id:String,queryString:String,tenant:String="") = {
-    val getRequest = new HttpGet(s"${apiBase}/entities/${id}?${queryString}")
+    val getRequest = new HttpGet(s"${apiBase}/entities/${id}?${queryStr(queryString)}")
 
     if (tenant.length > 0) {
       getRequest.setHeader("Fiware-Service", tenant)
@@ -50,7 +54,10 @@ object NgsiClient {
       val entityData = EntityUtils.toString(result.getEntity, "UTF-8")
       NgsiResult(200, ParserUtil.parse(entityData))
     }
-    else NgsiResult(result.getStatusLine.getStatusCode,null)
+    else {
+      Console.println(EntityUtils.toString(result.getEntity))
+      NgsiResult(result.getStatusLine.getStatusCode,null)
+    }
 
   }
 
