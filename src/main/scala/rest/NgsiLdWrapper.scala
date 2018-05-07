@@ -3,6 +3,7 @@ package rest
 import org.scalatra._
 import fiware._
 import json._
+import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
 import utils._
 
@@ -25,7 +26,7 @@ class NgsiLdWrapper extends ScalatraServlet {
 
   // Empty API base
   val Base = "/api"
-  val JsonMimeType = Map("Content-Type" -> "application/json")
+  val JsonMimeType = "application/json"
   val Version = "0.1"
 
   val KeyValues = "keyValues"
@@ -44,39 +45,53 @@ class NgsiLdWrapper extends ScalatraServlet {
     options
   }
 
+  def errorDescription(httpEntity: HttpEntity) = {
+    val errorPayload = ParserUtil.parse(EntityUtils.toString(
+      httpEntity, "UTF-8")).asInstanceOf[Map[String,String]]
+
+    Some(errorPayload("description"))
+  }
+
+  before() {
+    contentType = JsonMimeType
+  }
+
   get(s"${Base}/") {
     val out = Map(
-      "entities" -> s"${Base}/entities/",
-      "subscriptions" -> s"${Base}/subscriptions/",
-      "csources" -> s"${Base}/csources/"
+      "entities_url" -> s"${Base}/entities/",
+      "subscriptions_url" -> s"${Base}/subscriptions/",
+      "csources_url" -> s"${Base}/csources/"
     )
 
-    Ok(JSONSerializer.serialize(out),JsonMimeType)
+    Ok(JSONSerializer.serialize(out))
   }
 
   get("/version") {
     val versionData = Map("version" -> Version)
-    Ok(JSONSerializer.serialize(versionData), JsonMimeType)
+    Ok(JSONSerializer.serialize(versionData))
   }
 
   post(s"${Base}/entities/") {
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    Console.println(Ld2NgsiModelMapper.toNgsi(data))
     val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data))
 
     result.getStatusLine.getStatusCode match {
-      case 201 => Created(null,Map("Location" -> s"${Base}/entities/${data("id")}"))
-      case 400 => BadRequest(EntityUtils.toString(result.getEntity, "UTF-8"),JsonMimeType)
+      case 201 => Created(None,Map("Location" -> s"${Base}/entities/${data("id")}"))
+      case 400 => BadRequest(JSONSerializer.serialize(
+                                  LdErrors.BadRequestData(errorDescription(result.getEntity))))
+      case 422 => {
+        Conflict(JSONSerializer.serialize(LdErrors.AlreadyExists()))
+      }
       case _ => InternalServerError()
     }
   }
 
   get(s"${Base}/entities/") {
-    val t = params.getOrElse("type", null)
+    val t = params.getOrElse("type", None)
 
-    if (t == null) {
-      BadRequest(JSONSerializer.serialize(Map("type" -> "BadRequest")),JsonMimeType)
+    if (t == None) {
+      BadRequest(JSONSerializer.serialize(LdErrors.BadRequestData(Some("Entity type not provided"))))
     }
     else {
       val queryString = request.getQueryString
@@ -88,10 +103,10 @@ class NgsiLdWrapper extends ScalatraServlet {
           for (item <- data) {
             out += toNgsiLd(item)
           }
-          Ok(JSONSerializer.serialize(out.toList),JsonMimeType)
+          Ok(JSONSerializer.serialize(out.toList))
         }
         case 400 => {
-          BadRequest(JSONSerializer.serialize(Map("type" -> "BadRequest")),JsonMimeType)
+          BadRequest(JSONSerializer.serialize(LdErrors.BadRequestData(errorDescription(result.httpEntity))))
         }
       }
     }
@@ -108,9 +123,9 @@ class NgsiLdWrapper extends ScalatraServlet {
       case 200 => {
         val ldData = toNgsiLd(result.data.asInstanceOf[Map[String,Any]])
 
-        Ok(JSONSerializer.serialize(ldData),JsonMimeType)
+        Ok(JSONSerializer.serialize(ldData))
       }
-      case 404 => NotFound(JSONSerializer.serialize(Map("type" -> "NotFound")),JsonMimeType)
+      case 404 => NotFound(JSONSerializer.serialize(LdErrors.NotFound()))
       case _ => InternalServerError()
     }
   }
@@ -118,13 +133,13 @@ class NgsiLdWrapper extends ScalatraServlet {
   // Subscriptions
   get(s"${Base}/subscriptions/") {
     val myData = Map("a" -> 45, "b" -> "hola")
-    Ok(JSONSerializer.serialize(myData), JsonMimeType)
+    Ok(JSONSerializer.serialize(myData))
   }
 
   // Csources
   get(s"${Base}/csources/") {
     val myData = Map("a" -> 45, "b" -> "hola")
-    Ok(JSONSerializer.serialize(myData),JsonMimeType)
+    Ok(JSONSerializer.serialize(myData))
   }
 
   // Delete entity by id
@@ -132,8 +147,8 @@ class NgsiLdWrapper extends ScalatraServlet {
     val result = NgsiClient.deleteEntity(params("id"))
 
     result.getStatusLine.getStatusCode match {
-      case 204 => NoContent(Map.empty)
-      case 404 => NotFound(JSONSerializer.serialize(Map("type" -> "NotFound")),JsonMimeType)
+      case 204 => NoContent()
+      case 404 => NotFound(JSONSerializer.serialize(LdErrors.NotFound()))
       case _ => InternalServerError
     }
   }

@@ -30,9 +30,9 @@ object NgsiClient {
 
     if (result.getStatusLine.getStatusCode == 200) {
       val entityData = EntityUtils.toString(result.getEntity, "UTF-8")
-      NgsiResult(200, ParserUtil.parse(entityData))
+      NgsiResult(200, ParserUtil.parse(entityData),result.getEntity)
     }
-    else NgsiResult(result.getStatusLine.getStatusCode,null)
+    else NgsiResult(result.getStatusLine.getStatusCode,None,result.getEntity)
   }
 
   def queryStr(queryString:String) = {
@@ -52,13 +52,10 @@ object NgsiClient {
 
     if (result.getStatusLine.getStatusCode == 200) {
       val entityData = EntityUtils.toString(result.getEntity, "UTF-8")
-      NgsiResult(200, ParserUtil.parse(entityData))
+      NgsiResult(200, ParserUtil.parse(entityData),result.getEntity)
     }
-    else {
-      Console.println(EntityUtils.toString(result.getEntity))
-      NgsiResult(result.getStatusLine.getStatusCode,null)
-    }
-
+    else
+      NgsiResult(result.getStatusLine.getStatusCode,None,result.getEntity)
   }
 
   def createEntity(entityData:Map[String,Any],tenant:String=null) = {
