@@ -25,4 +25,7 @@ resolvers += Classpaths.typesafeReleases
 enablePlugins(ScalatraPlugin)
 enablePlugins(JettyPlugin)
 
+
 containerPort in Jetty := 1030
+
+mainClass in assembly := Some("main.JettyLauncher")
