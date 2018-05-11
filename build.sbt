@@ -31,6 +31,10 @@ enablePlugins(AshScriptPlugin)
 
 containerPort in Jetty := 1030
 
+version in Docker := "latest"
+packageName in Docker := "fiware/ngsi-ld_wrapper"
+
 dockerBaseImage := "openjdk:jre-alpine"
 
 mainClass in Compile := Some("main.JettyLauncher")
+
