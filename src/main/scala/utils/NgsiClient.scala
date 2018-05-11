@@ -7,7 +7,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
 
 object NgsiClient {
-  private var currentEndpoint = "http://localhost:1026"
+  private var currentEndpoint  = "http://localhost:1026"
   private val ngsiBase = "/v2"
   private var apiBase = s"${currentEndpoint}${ngsiBase}"
 

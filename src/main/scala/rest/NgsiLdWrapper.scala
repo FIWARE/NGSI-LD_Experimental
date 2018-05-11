@@ -2,7 +2,9 @@ package rest
 
 import org.scalatra._
 import fiware._
+import javax.servlet.ServletConfig
 import json._
+import main.Configuration
 import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
 import utils._
@@ -22,14 +24,20 @@ import scala.collection.mutable
   *
   *
   */
-class NgsiLdWrapper extends ScalatraServlet {
+class NgsiLdWrapper extends ScalatraServlet with Configuration {
 
   // Empty API base
-  val Base = "/api"
-  val JsonMimeType = "application/json"
-  val Version = "0.1"
+  private val Base = "/api"
+  private val JsonMimeType = "application/json"
+  private val Version = "0.1"
 
-  val KeyValues = "keyValues"
+  private val KeyValues = "keyValues"
+
+  override def init(servletConfig: ServletConfig) = {
+    super.init(servletConfig)
+    Console.println("NGSI Endpoint",getServletContext.initParameters(NgsiEndpoint))
+    NgsiClient.endpoint(getServletContext.initParameters(NgsiEndpoint))
+  }
 
   def toNgsiLd(in:Map[String,Any]) = {
     if (mode == KeyValues) in
@@ -67,8 +75,13 @@ class NgsiLdWrapper extends ScalatraServlet {
   }
 
   get("/version") {
-    val versionData = Map("version" -> Version)
+    val versionData = Map("version" -> Version,"product" -> "NGSI-LD Wrapper")
     Ok(JSONSerializer.serialize(versionData))
+  }
+
+  get("/configuration") {
+    val ngsiEndpoint = getServletContext.initParameters(NgsiEndpoint)
+    Ok(JSONSerializer.serialize(Map("NGSI_EndPoint" -> ngsiEndpoint)))
   }
 
   post(s"${Base}/entities/") {
