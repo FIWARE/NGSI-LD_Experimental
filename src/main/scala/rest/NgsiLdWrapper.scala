@@ -81,7 +81,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
 
   get("/configuration") {
     val ngsiEndpoint = getServletContext.initParameters(NgsiEndpoint)
-    Ok(JSONSerializer.serialize(Map("NGSI_EndPoint" -> ngsiEndpoint)))
+    Ok(JSONSerializer.serialize(Map("NGSI_Endpoint" -> ngsiEndpoint)))
   }
 
   post(s"${Base}/entities/") {

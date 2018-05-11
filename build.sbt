@@ -22,10 +22,15 @@ libraryDependencies ++= Seq(
 )
 
 resolvers += Classpaths.typesafeReleases
+
 enablePlugins(ScalatraPlugin)
 enablePlugins(JettyPlugin)
-
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+enablePlugins(AshScriptPlugin)
 
 containerPort in Jetty := 1030
 
-mainClass in assembly := Some("main.JettyLauncher")
+dockerBaseImage := "openjdk:jre-alpine"
+
+mainClass in Compile := Some("main.JettyLauncher")
