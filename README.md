@@ -30,7 +30,7 @@ $ sbt jetty:start
 ## How to test
 
 ```console
-sbt test
+$ sbt test
 ```
 
 ## How to run using Docker
@@ -52,11 +52,15 @@ $ curl http://localhost:1030/version
 
 ## How to check configuration (NGSI endpoint)
 
+```console
 $ curl http://localhost:1030/configuration 
+```
 
 ## How to invoke API operations
 
+```console
 $ curl http://localhost:1030/api/entities/ 
+```
 
 ## See also:
 
