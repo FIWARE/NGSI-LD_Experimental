@@ -23,6 +23,7 @@ An example illustrating the usage of NGSI-LD can be found [here](doc/example.md)
 
 ```console
 sbt compile
+export NGSI_Endpoint=http://<Your_NGSI_Endpoint i.e. Orion's host:port>
 sbt jetty:start
 ```
 
@@ -33,12 +34,20 @@ sbt test
 ## How to run using Docker
 
 ```console
-docker run fiware/ngsi-ld_wrapper
+docker run -e NGSI_Endpoint="http://<Your_NGSI_Endpoint i.e. Orion's host:port>" fiware/ngsi-ld_wrapper
+```
+
+## How to run using Docker Compose
+
+```console
+wget https://raw.githubusercontent.com/Fiware/NGSI-LD_Wrapper/master/docker-compose.yml
+docker-compose up
 ```
 
 ## See also:
 
 https://github.com/fiware/dataModels
+
 https://github.com/fiware/context.Orion
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
