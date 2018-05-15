@@ -1,0 +1,35 @@
+{
+  "id": "urn:ngsi-ld:Room:ISDI-Impact-Room-2",
+  "type": "Room",
+  "temperature": {
+    "type": "Property",
+    "value": 30,
+    "observedAt": "2017-10-31T12:00:00"
+  },
+  "dateLastCleaning": {
+    "type": "Property",
+    "value": "2017-09-20T13:00:00.00Z"
+  },
+  "location": {
+    "type": "GeoProperty",
+    "value": {
+      "type": "Point",
+      "coordinates": [
+        -2,
+        40
+      ]
+    }
+  },
+  "nearbyRoom": {
+    "type": "Relationship",
+    "object": "urn:ngsi-ld:Room:ISDI-Impact-Room-1",
+    "distance": {
+      "type": "Property",
+      "value": 2.5
+    }
+  },
+  "owner": {
+    "type": "Relationship",
+    "object": "urn:ngsi-ld:Person:a45678"
+  }
+}
