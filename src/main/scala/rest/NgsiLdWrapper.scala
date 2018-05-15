@@ -61,6 +61,8 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     Some(errorPayload("description"))
   }
 
+  def defaultContext = Map("Link" -> DefaultContextLink)
+
   before() {
     contentType = JsonMimeType
   }
@@ -116,7 +118,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
           for (item <- data) {
             out += toNgsiLd(item)
           }
-          Ok(serialize(out.toList))
+          Ok(serialize(out.toList),defaultContext)
         }
         case 400 => {
           BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.httpEntity))))
