@@ -28,10 +28,15 @@ sbt jetty:start
 sbt test
 ```
 
+## How to run using Docker
+
+```console
+docker run fiware/ngsi-ld_wrapper
+```
+
 ## See also:
 
 https://github.com/fiware/dataModels
-
 https://github.com/fiware/context.Orion
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
