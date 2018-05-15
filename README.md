@@ -13,7 +13,7 @@ This wrapper works on top of the [FIWARE Context Broker](https://github.com/fiwa
 
 An example illustrating the usage of NGSI-LD can be found [here](doc/example.md). 
 
-## How to build / test
+## How to build
 
 ### Prerequisites
 
@@ -22,10 +22,12 @@ An example illustrating the usage of NGSI-LD can be found [here](doc/example.md)
 * SBT build tool
 
 ```console
-sbt compile
-export NGSI_Endpoint=http://<Your_NGSI_Endpoint i.e. Orion's host:port>
-sbt jetty:start
+$ sbt compile
+$ export NGSI_Endpoint=http://<Your_NGSI_Endpoint i.e. Orion's host:port>
+$ sbt jetty:start
 ```
+
+## How to test
 
 ```console
 sbt test
@@ -34,15 +36,27 @@ sbt test
 ## How to run using Docker
 
 ```console
-docker run -e NGSI_Endpoint="http://<Your_NGSI_Endpoint i.e. Orion's host:port>" fiware/ngsi-ld_wrapper
+$ docker run -e NGSI_Endpoint="http://<Your_NGSI_Endpoint i.e. Orion's host:port>" fiware/ngsi-ld_wrapper
+
+$ curl http://localhost:1030/version
 ```
 
 ## How to run using Docker Compose
 
 ```console
-wget https://raw.githubusercontent.com/Fiware/NGSI-LD_Wrapper/master/docker-compose.yml
-docker-compose up
+$ wget https://raw.githubusercontent.com/Fiware/NGSI-LD_Wrapper/master/docker-compose.yml
+$ docker-compose up
+
+$ curl http://localhost:1030/version
 ```
+
+## How to check configuration (NGSI endpoint)
+
+$ curl http://localhost:1030/configuration 
+
+## How to invoke API operations
+
+$ curl http://localhost:1030/api/entities/ 
 
 ## See also:
 
