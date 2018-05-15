@@ -1,0 +1,24 @@
+# Note that mongo container is started before Orion, as Orion needs it
+# as dependency and reserve the order has been found problematic in some
+# low resource hosts
+mongo:
+  image: mongo:3.4
+  container_name: mongo
+  command: --nojournal
+
+orion:
+  image: fiware/orion
+  container_name: orion
+  links:
+    - mongo
+  command: -dbhost mongo
+  
+ngsi-ld_wrapper:
+  image: fiware/ngsi-ld_wrapper
+  container_name: ngsi-ld_wrapper
+  ports:
+    - "1030:1030"
+  links:
+    - orion
+  environment:
+    - NGSI_Endpoint=http://orion:1026
