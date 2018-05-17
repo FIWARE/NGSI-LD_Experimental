@@ -1,7 +1,7 @@
 # NGSI-LD_Wrapper
 
 [![MIT license][license-image]][license-url]
-[![Build badge](https://img.shields.io/travis/Fiware/NGSI-LD_Wrapper.svg "Travis build status")](https://travis-ci.org/fiware/NGSI-LD_Wrapper/)
+[![Build badge](https://img.shields.io/travis/Fiware/NGSI-LD_Wrapper.svg "Travis build status")](https://travis-ci.org/Fiware/NGSI-LD_Wrapper/)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/ngsi-ld_wrapper.svg)](https://hub.docker.com/r/fiware/ngsi-ld_wrapper/)
 
 
