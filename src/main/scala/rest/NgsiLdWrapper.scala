@@ -102,6 +102,20 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     }
   }
 
+  post(s"${Base}/entities/:id/attrs/") {
+    val id = params("id")
+    val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
+
+    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data))
+
+    result.getStatusLine.getStatusCode match {
+      case 204 => NoContent()
+      case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+      case 404 => NotFound(serialize(LdErrors.NotFound()))
+      case _ => InternalServerError()
+    }
+  }
+
   get(s"${Base}/entities/") {
     val t = params.getOrElse("type", None)
 

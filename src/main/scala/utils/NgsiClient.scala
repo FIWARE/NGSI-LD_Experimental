@@ -72,8 +72,15 @@ object NgsiClient {
     httpClient.execute(postRequest)
   }
 
-  def appendAttributes() = {
+  def appendAttributes(entityId:String,entityData:Map[String,Any],tenant:Option[String]=None) = {
+    val data = JSONSerializer.serialize(entityData)
+    val postRequest = new HttpPost(s"${apiBase}/entities/${entityId}/attrs/")
 
+    postRequest.setHeader("Content-Type","application/json")
+    postRequest.setEntity(new StringEntity(data))
+
+    val httpClient = HttpClientBuilder.create().build()
+    httpClient.execute(postRequest)
   }
 
   def updateEntity() = {
