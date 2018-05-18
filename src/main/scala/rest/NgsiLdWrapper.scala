@@ -116,6 +116,32 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     }
   }
 
+  patch(s"${Base}/entities/:id/attrs/") {
+    /*
+    val id = params("id")
+    val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
+
+    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data))
+
+    result.getStatusLine.getStatusCode match {
+      case 204 => NoContent()
+      case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+      case 404 => NotFound(serialize(LdErrors.NotFound()))
+      case _ => InternalServerError()
+    }*/
+  }
+
+  // Delete entity attribute
+  delete(s"${Base}/entities/:id/attrs/:attrId") {
+    val result = NgsiClient.deleteEntityAttribute(params("id"), params("attrId"))
+
+    result.getStatusLine.getStatusCode match {
+      case 204 => NoContent()
+      case 404 => NotFound(serialize(LdErrors.NotFound()))
+      case _ => InternalServerError
+    }
+  }
+
   get(s"${Base}/entities/") {
     val t = params.getOrElse("type", None)
 
@@ -169,20 +195,5 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   get(s"${Base}/csources/") {
     val myData = Map("a" -> 45, "b" -> "hola")
     Ok(serialize(myData))
-  }
-
-  // Delete entity by id
-  delete(s"${Base}/entities/:id") {
-    val result = NgsiClient.deleteEntity(params("id"))
-
-    result.getStatusLine.getStatusCode match {
-      case 204 => NoContent()
-      case 404 => NotFound(serialize(LdErrors.NotFound()))
-      case _ => InternalServerError
-    }
-  }
-
-  patch(s"${Base}/entities/:id/attrs") {
-
   }
 }

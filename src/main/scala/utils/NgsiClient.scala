@@ -95,6 +95,14 @@ object NgsiClient {
     httpClient.execute(delRequest)
   }
 
+  def deleteEntityAttribute(id:String,attrId:String,tenant:Option[String]=None) = {
+    val delRequest = new HttpDelete(s"${apiBase}/entities/${id}/attrs/${attrId}")
+
+    // send the GET request
+    val httpClient = HttpClientBuilder.create().build()
+    httpClient.execute(delRequest)
+  }
+
   def createSubscription() = {
 
   }
