@@ -1,7 +1,7 @@
 package utils
 
 import json.JSONSerializer
-import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost}
+import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPatch, HttpPost}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
@@ -83,8 +83,15 @@ object NgsiClient {
     httpClient.execute(postRequest)
   }
 
-  def updateEntity() = {
+  def updateEntity(entityId:String,entityData:Map[String,Any],tenant:Option[String]=None) = {
+    val data = JSONSerializer.serialize(entityData)
+    val patchRequest = new HttpPatch(s"${apiBase}/entities/${entityId}/attrs/")
 
+    patchRequest.setHeader("Content-Type","application/json")
+    patchRequest.setEntity(new StringEntity(data))
+
+    val httpClient = HttpClientBuilder.create().build()
+    httpClient.execute(patchRequest)
   }
 
   def deleteEntity(id:String,tenant:Option[String]=None) = {
