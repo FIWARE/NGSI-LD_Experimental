@@ -30,8 +30,9 @@ jobs:
       script:
         - 'node_modules/.bin/newman run tests/functional/NGSI-LD_Wrapper.postman_collection.json'
     - stage: docker
-      - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then sbt docker:publishLocal; fi'
-      - bash docker.sh
+      script:
+        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then sbt docker:publishLocal; fi'
+        - bash docker.sh
         
 notifications:
   on_success: change
