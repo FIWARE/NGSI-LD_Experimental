@@ -10,11 +10,12 @@ env:
   - secure: kgQYDuT8ZUYZK842XZBLrEfWMYme7bq7euuT5yPsbIzwyJ+yn6Us4ocSQN5xLQVYrbFczV0QgPtIw3vrerxNyt9ZM4Z5DOxCaMHsxFp4144M1CVIq6Yrvf4zhIpKiyZi9IwWfJ2GPjYHTPUncScLrP9IC3sRDdImdBza50+DGHETF+4jkYgE2SX0XrYAyLuBYhAbpyyaAWQj4d6J8DBL/K79MyaLYXeSp0J/PKemWJh71dVdIDf/6r0+Fb4hbG39Vqzx21uEDhDs7m1wSx6wqq8YqshEfZuHv1AvVze7RvUF9LOqeOTNZWRAW7ZJsdkrat2Zop3m4vrOShJP5yCR/Ek6psUSg3hNCb1fZ3/YepxiNW1dKzQRYy5ikBvewLYJ2DxvbB+7H59eQzTh4s9WFCBHRkNbnWIkWAs2zdQtprrb3kyOWGsuW5e4AWVDmJB46pHlgCu/SIfY2FP02v7+fEsjFmFbyB7mJFLlJPCtPcx8b53mD2vnU0lme8EXJ3Jf9NPXGBVzADG4atRGA+ifS624ONqajNi+aeWN7Yl2mQZ6zEg2peskjH2AQe9WHJo4Ai583tBHsJDEyiwEW03jFoQSOe+y3Mo5CRvCsPWNuFzHoqzch/jw2JbKEtEuoSW2GbMs8joMMc2pnTW4tV8JMZ7VqwedgTSzTq5VmXBBZlw=
 script:
 - sbt test
+- sbt assembly
 - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then sbt docker:publishLocal; fi'
 - bash docker.sh
 
 
-matrix:
+jobs:
   include:
     - language: scala
       node_js:
