@@ -12,3 +12,23 @@ script:
 - sbt test
 - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then sbt docker:publishLocal; fi'
 - bash docker.sh
+
+
+matrix:
+  include:
+    - language: scala
+      node_js:
+        - 8
+      install:
+        - npm install newman
+        - docker run --name mongodb -d mongo:3.4
+        - docker run -d --name orion1 --link mongodb:mongodb -p 1026:1026 fiware/orion -dbhost mongodb
+      before_script:
+        - 'export NGSI_Endpoint=http://localhost:1026'
+        - java -jar target/scala-2.12/NGSI-LD_Wrapper-assembly-0.1.jar
+      script:
+        - node_modules/.bin/newman run tests/functional/NGSI-LD_Wrapper.postman_collection.json
+        
+notifications:
+  on_success: change
+  on_failure: always
