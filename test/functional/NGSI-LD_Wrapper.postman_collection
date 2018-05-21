@@ -1,0 +1,105 @@
+{
+	"info": {
+		"_postman_id": "ee696ebe-8106-463e-93a7-14333d99bed7",
+		"name": "Test Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:1030/api/entities/",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7657e164-8562-4bf6-a06d-b1b52284f792",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"response is created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V1234\",\n\t\"type\": \"Vehicle\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 100\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:1030/api/entities/?type=Vehicle",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "049aff58-e5d0-47f0-a521-3daa3b108411",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"response is success\", function () {",
+							"    pm.response.to.be.success;",
+							"});",
+							"",
+							"pm.test(\"Response is array of length 1\",function () {",
+							"    pm.expect(pm.response.json().length).to.equal(1);",
+							"});",
+							"",
+							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"    pm.expect(pm.response.json()[0].speed.value).to.equal(100);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/?type=Vehicle",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						""
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "Vehicle"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
