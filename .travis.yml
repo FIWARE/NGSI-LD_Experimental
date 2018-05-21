@@ -13,7 +13,7 @@ global:
 jobs:
   include:
     - stage test
-      language: scala
+      scala:
         script:
         - sbt test
         - sbt assembly
