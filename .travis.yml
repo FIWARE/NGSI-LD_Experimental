@@ -15,7 +15,7 @@ script:
 jobs:
   include:
     - stage: functest
-      scala:
+      language: scala
         script:
           - sbt assembly
       node_js:
