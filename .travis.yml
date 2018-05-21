@@ -15,9 +15,8 @@ script:
 
 jobs:
   include:
-    - stage: test
-      language: scala
     - stage: functest
+      language: scala
       node_js:
         - 8
       install:
