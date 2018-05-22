@@ -20,7 +20,7 @@ jobs:
       script:
         - 'node_modules/.bin/newman run test/functional/NGSI-LD_Wrapper.postman_collection.json'
     - stage: docker
-      if: branch IN (master) AND NOT type IN (pull_request) AND repo IN ('Fiware/NGSI-LD_Wrapper', 'caa06d9c/NGSI-LD_Wrapper')
+      if: branch IN (master) AND NOT type IN (pull_request) AND repo IN ('Fiware/NGSI-LD_Wrapper')
       env:
         - DOCKER_ID=fiware
         - DOCKER_REPO=ngsi-ld_wrapper
