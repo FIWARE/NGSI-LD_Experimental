@@ -7,16 +7,11 @@ global:
   - TAG=latest
   - secure: A/IC/1bHLBuEkLR4oGq8BvQl1731zEnf2S34DBYEUN/nOnbB4tUOaDCXiALvfrP4ABifa/uj+90NwNBrvlmF3+5XU3sbedyChlVZllYk7fN72XuuN94CW5CFUvVR6m3aPW/27gSamf5uq/iAodgw15OnWnazpg0UCUXHMGz/iP3hy6/yMm6gLPJM4/mA/BrnBev54dxTHmsQHqfvkLhJ3Sxsn5i+sDBqVRlBQxJfN9IgSkbPqUR8m8CGur5YDB1slJ5U0qe855Y3sOSO7dKN4mKBmdcWG8D9avLJ4wR/srNBZ8haL/yy+jfqkGkTt7akeFmJMgTiMUpdqnTo2gAGRF31iktbvuRAwzI+mkt2JHuAVhHluvegFhau4rJjaMNyqBfEPFcdJzL5vPc8Kahg11ganqIKUch90H2jS6nOJXgIpr+oGCyqpo8pCe8yhNCanTESvnDClas7JWR4yTZ0RhF7iC0UQRDrsQzuzhJzs3Z5s/dT2ORSMwNMJe36tcp28FxzGpPW1u5arXtmPIHhODox0A1ILiwygaNu+hJVVFB+VHHIqdc4/je3Y2TCDD5O/VbMiYt0v18/Yl08iljaR2Bj+UqSb2IMr6RsaxDzv/1b0n0eE+DSXAWTSeLta3ruo3WSxekyo8qrQaEq6LQfo947N9naxYzhH48OBtb3O1s=
   - secure: kgQYDuT8ZUYZK842XZBLrEfWMYme7bq7euuT5yPsbIzwyJ+yn6Us4ocSQN5xLQVYrbFczV0QgPtIw3vrerxNyt9ZM4Z5DOxCaMHsxFp4144M1CVIq6Yrvf4zhIpKiyZi9IwWfJ2GPjYHTPUncScLrP9IC3sRDdImdBza50+DGHETF+4jkYgE2SX0XrYAyLuBYhAbpyyaAWQj4d6J8DBL/K79MyaLYXeSp0J/PKemWJh71dVdIDf/6r0+Fb4hbG39Vqzx21uEDhDs7m1wSx6wqq8YqshEfZuHv1AvVze7RvUF9LOqeOTNZWRAW7ZJsdkrat2Zop3m4vrOShJP5yCR/Ek6psUSg3hNCb1fZ3/YepxiNW1dKzQRYy5ikBvewLYJ2DxvbB+7H59eQzTh4s9WFCBHRkNbnWIkWAs2zdQtprrb3kyOWGsuW5e4AWVDmJB46pHlgCu/SIfY2FP02v7+fEsjFmFbyB7mJFLlJPCtPcx8b53mD2vnU0lme8EXJ3Jf9NPXGBVzADG4atRGA+ifS624ONqajNi+aeWN7Yl2mQZ6zEg2peskjH2AQe9WHJo4Ai583tBHsJDEyiwEW03jFoQSOe+y3Mo5CRvCsPWNuFzHoqzch/jw2JbKEtEuoSW2GbMs8joMMc2pnTW4tV8JMZ7VqwedgTSzTq5VmXBBZlw=
-
-
-
 jobs:
   include:
-    - stage test
-      scala:
-        script:
+    - stage: test
+      script:
         - sbt test
-        - sbt assembly
     - stage: functest
       node_js:
         - 8
@@ -24,16 +19,17 @@ jobs:
         - npm install newman
         - docker run --name mongodb -d mongo:3.4
         - docker run -d --name orion1 --link mongodb:mongodb -p 1026:1026 fiware/orion -dbhost mongodb
+        - sbt assembly
       before_script:
         - 'export NGSI_Endpoint=http://localhost:1026'
-        - 'java -jar target/scala-2.12/NGSI-LD_Wrapper-assembly-0.1.jar'
+        - 'nohup java -jar target/scala-2.12/NGSI-LD_Wrapper-assembly-0.1.jar&'
       script:
         - 'node_modules/.bin/newman run tests/functional/NGSI-LD_Wrapper.postman_collection.json'
     - stage: docker
+      if: branch IN (master) AND NOT type IN (pull_request)
       script:
-        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then sbt docker:publishLocal; fi'
+        - sbt docker:publishLocal
         - bash docker.sh
-        
 notifications:
   on_success: change
   on_failure: always
