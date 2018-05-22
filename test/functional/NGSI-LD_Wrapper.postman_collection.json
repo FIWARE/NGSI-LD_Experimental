@@ -90,7 +90,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9a2ad0dc-c085-4757-8039-222eacd7b1ee",
+						"id": "d32d6e8a-785f-4e9f-b60c-f7b77856ed68",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response code is success\", function () {",
@@ -105,9 +105,11 @@
 							"    pm.expect(pm.response.json()[0].speed.value).to.equal(100);",
 							"});",
 							"",
-							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"pm.test(\"Response contains one relationship\",function () {",
 							"    pm.expect(pm.response.json()[0].isParked.object).to.equal(\"urn:ngsi-ld:OffStreetParking:Central\");",
-							"});"
+							"});",
+							"",
+							""
 						]
 					}
 				}
@@ -139,12 +141,59 @@
 			"response": []
 		},
 		{
+			"name": "Add Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d851ea0b-da18-4d81-b909-4c6de5e9712f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is No Content\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"extraAttr\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Test\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V1234/attrs/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V1234",
+						"attrs",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get Entity Data",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "54d7c515-5669-4826-bb4c-85c2bf41b628",
+						"id": "0021215f-1f85-4597-b25d-65565e26a6be",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response code is success\", function () {",
@@ -154,7 +203,10 @@
 							"pm.test(\"Response contains one speed property of value 100\",function () {",
 							"    pm.expect(pm.response.json().speed.value).to.equal(100);",
 							"});",
-							""
+							"",
+							"pm.test(\"Response contains one extra property of value test\",function () {",
+							"    pm.expect(pm.response.json().extraAttr.value).to.equal(\"Test\");",
+							"});"
 						]
 					}
 				}
@@ -250,15 +302,107 @@
 			"response": []
 		},
 		{
+			"name": "Delete_Attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "51eb892a-8888-41b2-9c30-082dac120aeb",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response is no content\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V89000\",\n\t\"type\": \"Vehicle\",\n\t\"brandName\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Mercedes\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000/attrs/brandName",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V89000",
+						"attrs",
+						"brandName"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_Attribute_NotFound",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6a2c8991-a1d7-4e2d-9531-325898eeabd8",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response is not found\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V89000\",\n\t\"type\": \"Vehicle\",\n\t\"brandName\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Mercedes\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000/attrs/brandName",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V89000",
+						"attrs",
+						"brandName"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Delete_Entity",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "3a92c792-dfcb-4295-a7c0-e95a878533fa",
+						"id": "1a9e2cb6-3e5e-4cd8-a7b3-0319de96aeea",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"response is no content\", function () {",
+							"pm.test(\"Response is no content\", function () {",
 							"    pm.response.to.have.status(204);",
 							"});",
 							""
