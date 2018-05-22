@@ -25,7 +25,7 @@ jobs:
         - 'export NGSI_Endpoint=http://localhost:1026'
         - 'nohup java -jar target/scala-2.12/NGSI-LD_Wrapper-assembly-0.1.jar&'
       script:
-        - 'node_modules/.bin/newman run tests/functional/NGSI-LD_Wrapper.postman_collection.json'
+        - 'node_modules/.bin/newman run test/functional/NGSI-LD_Wrapper.postman_collection.json'
     - stage: docker
       if: branch IN (master) AND NOT type IN (pull_request)
       script:
