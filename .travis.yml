@@ -10,7 +10,8 @@ global:
 jobs:
   include:
     - stage: test
-      script:
+      scala:
+        script:
         - sbt test
     - stage: functest
       node_js:
