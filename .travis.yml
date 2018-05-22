@@ -1,5 +1,6 @@
 services:
 - docker
+language: scala
 env:
 global:
   - DOCKER_ID=fiware
@@ -10,8 +11,7 @@ global:
 jobs:
   include:
     - stage: test
-      scala:
-        script:
+      script:
         - sbt test
     - stage: functest
       node_js:
