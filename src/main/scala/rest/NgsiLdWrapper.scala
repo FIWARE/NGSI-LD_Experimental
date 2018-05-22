@@ -130,6 +130,16 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     }
   }
 
+  delete(s"${Base}/entities/:id") {
+    val result = NgsiClient.deleteEntity(params("id"))
+
+    result.getStatusLine.getStatusCode match {
+      case 204 => NoContent()
+      case 404 => NotFound(serialize(LdErrors.NotFound()))
+      case _ => InternalServerError
+    }
+  }
+
   // Delete entity attribute
   delete(s"${Base}/entities/:id/attrs/:attrId") {
     val result = NgsiClient.deleteEntityAttribute(params("id"), params("attrId"))

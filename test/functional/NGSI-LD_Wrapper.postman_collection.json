@@ -6,15 +6,49 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:1030/api/entities/",
+			"name": "Initial_Clean_Up",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "24912d0a-8791-4e31-9ab6-f78d1d0093f7",
+						"id": "6fde8980-2314-44fb-b6f3-769d6dace0ef",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"response is created\", function () {",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V1234",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V1234"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Entity",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3720b909-7238-4f30-8927-ec492da79293",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is created\", function () {",
 							"    pm.response.to.have.status(201);",
 							"});",
 							""
@@ -32,7 +66,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V1234\",\n\t\"type\": \"Vehicle\"\n}"
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V1234\",\n\t\"type\": \"Vehicle\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 100\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t}\n}"
 				},
 				"url": {
 					"raw": "http://localhost:1030/api/entities/",
@@ -51,7 +85,33 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:1030/api/entities/?type=Vehicle",
+			"name": "Query_Entity",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9a2ad0dc-c085-4757-8039-222eacd7b1ee",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is success\", function () {",
+							"    pm.response.to.be.success;",
+							"});",
+							"",
+							"pm.test(\"Response is array of length 1\",function () {",
+							"    pm.expect(pm.response.json().length).to.equal(1);",
+							"});",
+							"",
+							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"    pm.expect(pm.response.json()[0].speed.value).to.equal(100);",
+							"});",
+							"",
+							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"    pm.expect(pm.response.json()[0].isParked.object).to.equal(\"urn:ngsi-ld:OffStreetParking:Central\");",
+							"});"
+						]
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -73,6 +133,194 @@
 							"key": "type",
 							"value": "Vehicle"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Entity Data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "54d7c515-5669-4826-bb4c-85c2bf41b628",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is success\", function () {",
+							"    pm.response.to.be.success;",
+							"});",
+							"",
+							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"    pm.expect(pm.response.json().speed.value).to.equal(100);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V1234",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V1234"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Entity_NotFound",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1197b64a-651c-4bb4-9317-bed6750a4831",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response is not found\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Response includes proper error\", function () {",
+							"    pm.expect(pm.response.json().type).to.equal(\"http://uri.etsi.org/ngsi-ld/errors/NotFound\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V0000000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V0000000"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create_Entity_Delete",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V89000\",\n\t\"type\": \"Vehicle\",\n\t\"brandName\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Mercedes\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_Entity",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3a92c792-dfcb-4295-a7c0-e95a878533fa",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"response is no content\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V89000"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_Entity_NotFound",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "119ffa3b-d3a5-4f41-b449-8703dc3ef976",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response is not found\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Response includes proper error\", function () {",
+							"    pm.expect(pm.response.json().type).to.equal(\"http://uri.etsi.org/ngsi-ld/errors/NotFound\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle:V89000"
 					]
 				}
 			},
