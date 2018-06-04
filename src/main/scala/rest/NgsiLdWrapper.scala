@@ -26,9 +26,8 @@ import scala.collection.mutable
   *
   */
 class NgsiLdWrapper extends ScalatraServlet with Configuration {
+  private val Base = System.getenv.getOrDefault(NgsiLdApiPath,DefaultNgsiLdApiPath)
 
-  // Empty API base
-  private val Base = "/api"
   private val JsonMimeType = "application/json"
   private val Version = "0.1"
 
