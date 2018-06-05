@@ -14,6 +14,7 @@ libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.5"
 val ScalatraVersion = "2.6.3"
 
 javaOptions in Jetty ++= Seq("-server")
+javaOptions in Universal ++= Seq("-server", "-XX:+UseG1GC")
 
 libraryDependencies ++= Seq(
   "org.scalatra" %% "scalatra" % ScalatraVersion,
