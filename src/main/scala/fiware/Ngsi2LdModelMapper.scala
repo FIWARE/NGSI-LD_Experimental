@@ -35,6 +35,7 @@ object Ngsi2LdModelMapper extends Mapper {
     key match {
       case "dateCreated" => out += ("createdAt" -> auxIn("value"))
       case "dateModified" => out += ("modifiedAt" -> auxIn("value"))
+      case "@context" => out += ("@context" -> auxIn("value"))
 
       case AnyProp(prop) => {
         val nodeType = ((p: String) => {

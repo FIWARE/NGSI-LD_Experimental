@@ -25,11 +25,10 @@ object Ld2NgsiModelMapper extends Mapper {
   def toNgsi(in: Map[String, Any]) = {
     val out = mutable.Map[String, Any]()
 
-    // out += ("@context" -> "http://example.org/jsonld/ngsi-ld.json")
-
     in.keys.foreach(key => key match {
       case "id" => out += (key -> in(key))
       case "type" => out += (key -> in(key))
+      case "@context" => out += (key -> Map("type" -> "@context","value" -> in(key)))
       case _ => match_key_ngsi(key, in, out)
     })
 

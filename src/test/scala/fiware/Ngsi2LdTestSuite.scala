@@ -17,6 +17,7 @@ class Ngsi2LdTestSuite extends FunSuite {
 
   // TODO: Divide in different simple and smaller cases
   val testData = Map("id"->"urn:ngsi-ld:Car:myId", "type" -> "MyType",
+    "@context" -> Map("type" -> "@context", "value" -> "http://example.org/example-context.jsonld"),
     "refOther" -> Map("type"->"Relationship","value" -> "anId",
       "metadata" -> Map("entityType" -> Map("value" -> "Parking"))),
     "dateCreated" -> Map("value" -> "2018-04-23T12:00:00", "type" -> "DateTime"),
@@ -42,6 +43,10 @@ class Ngsi2LdTestSuite extends FunSuite {
 
   test("Type should be kept") {
     assert(result("type") == "MyType")
+  }
+
+  test("@context should be a term-value element in the output JSON") {
+    assert(result("@context") == node(testData("@context"))("value"))
   }
 
   test("dateCreated should be mapped to createdAt") {

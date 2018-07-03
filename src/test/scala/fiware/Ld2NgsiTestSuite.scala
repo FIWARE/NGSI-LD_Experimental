@@ -24,6 +24,7 @@ class Ld2NgsiTestSuite extends FunSuite {
   }
 
   val testNgsiLdData = Map("id"->urn("myId","Car"), "type" -> "Car",
+  "@context" -> "http://example.org/example-context.jsonld",
   "speed" -> Map("type" -> "Property", "value" -> 45, "observedAt" -> "2018-04-27T12:00:00",
     "accuracy" -> Map("type" -> "Property","value" -> 0.89),
     "providedBy" -> Map("type" -> "Relationship", "object" -> urn("A99","Agent"))),
@@ -53,6 +54,12 @@ class Ld2NgsiTestSuite extends FunSuite {
   test("Type should be kept") {
     assert(result("type") == "Car")
   }
+
+  test("@context should be mapped to an NGSI Attribute") {
+    assert(node(result("@context"))("type") == "@context")
+    assert(node(result("@context"))("value") == testNgsiLdData("@context"))
+  }
+
 
   test("Nodes of type property should not have any type") {
     assert(node(result("speed")).getOrElse("type",null) == null)
