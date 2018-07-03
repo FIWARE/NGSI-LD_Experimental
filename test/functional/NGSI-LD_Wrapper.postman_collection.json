@@ -85,6 +85,51 @@
 			"response": []
 		},
 		{
+			"name": "Create Entity with @context",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3720b909-7238-4f30-8927-ec492da79293",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle2:V1234-@Context\",\n\t\"type\": \"Vehicle2\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 45\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t},\n\t\"@context\": \"http://example.org/ngsi-ld-context.jsonld\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Query_Entity",
 			"event": [
 				{
@@ -226,6 +271,50 @@
 						"api",
 						"entities",
 						"urn:ngsi-ld:Vehicle:V1234"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Entity Data with @context",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "37083861-a627-4bbc-be66-ccfd5fbca916",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is success\", function () {",
+							"    pm.response.to.be.success;",
+							"});",
+							"",
+							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"    pm.expect(pm.response.json().speed.value).to.equal(45);",
+							"});",
+							"",
+							"pm.test(\"Response contains @context\",function () {",
+							"    pm.expect(pm.response.json()[\"@context\"]).to.equal(\"http://example.org/ngsi-ld-context.jsonld\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle2:V1234-@Context"
 					]
 				}
 			},
