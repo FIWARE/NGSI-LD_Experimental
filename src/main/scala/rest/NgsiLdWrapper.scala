@@ -89,7 +89,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   post(s"${Base}/entities/") {
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data))
+    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data, Map()))
 
     result.getStatusLine.getStatusCode match {
       case 201 => Created(null,Map("Location" -> s"${Base}/entities/${data("id")}"))
@@ -105,7 +105,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data))
+    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data,Map()))
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -119,7 +119,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.updateEntity(id,Ld2NgsiModelMapper.toNgsi(data))
+    val result = NgsiClient.updateEntity(id,Ld2NgsiModelMapper.toNgsi(data,Map()))
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()

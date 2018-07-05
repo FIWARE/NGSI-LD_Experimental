@@ -22,14 +22,14 @@ object Ld2NgsiModelMapper extends Mapper {
     }
   }
 
-  def toNgsi(in: Map[String, Any]) = {
+  def toNgsi(in: Map[String, Any],ldContext:Map[String,String]) = {
     val out = mutable.Map[String, Any]()
 
     in.keys.foreach(key => key match {
       case "id" => out += (key -> in(key))
       case "type" => out += (key -> in(key))
       case "@context" => out += (key -> Map("type" -> "@context","value" -> in(key)))
-      case _ => match_key_ngsi(key, in, out)
+      case _ => match_key_ngsi(key, in, out,null,ldContext)
     })
 
     out.toMap[String, Any]
@@ -38,7 +38,8 @@ object Ld2NgsiModelMapper extends Mapper {
   private def match_key_ngsi(key: String,
                              in: Map[String, Any],
                              out: mutable.Map[String,Any],
-                             parentKey:String=null):mutable.Map[String,Any] = {
+                             parentKey:String=null,
+                             ldContext:Map[String,String]):mutable.Map[String,Any] = {
     val auxIn = in(key).asInstanceOf[Map[String, Any]]
 
     val attrMap = mutable.Map[String, Any]()
@@ -49,7 +50,9 @@ object Ld2NgsiModelMapper extends Mapper {
         val nodeType = auxIn("type")
 
         nodeType match {
-          case "Property" => attrMap += ("value" -> auxIn.getOrElse("value",null))
+          case "Property" => {
+            attrMap += ("value" -> auxIn.getOrElse("value",null))
+          }
           case "Relationship" => {
             val urnObject = auxIn("object")
             attrMap += ("type" -> "Relationship", "value" -> urnObject)
@@ -66,13 +69,13 @@ object Ld2NgsiModelMapper extends Mapper {
       case "value" => Nil
       case "object" => Nil
       case _ => {
-        match_key_ngsi(ikey,auxIn,metadata,key)
+        match_key_ngsi(ikey,auxIn,metadata,key,ldContext)
       }
     })
 
     if (metadata.size > 0)
       attrMap += ("metadata" -> metadata.toMap[String,Any])
 
-    out += (key -> attrMap.toMap[String,Any])
+    out += (ldContext.getOrElse(key,key) -> attrMap.toMap[String,Any])
   }
 }
