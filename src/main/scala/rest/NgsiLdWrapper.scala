@@ -39,9 +39,9 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     NgsiClient.endpoint(getServletContext.initParameters(NgsiEndpoint))
   }
 
-  def toNgsiLd(in:Map[String,Any]) = {
+  def toNgsiLd(in:Map[String,Any],ldContext:Map[String,String]) = {
     if (mode == KeyValues) in
-    else Ngsi2LdModelMapper.fromNgsi(in)
+    else Ngsi2LdModelMapper.fromNgsi(in,ldContext)
   }
 
   def mode() = {
@@ -64,6 +64,15 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
 
   before() {
     contentType = JsonMimeType
+  }
+
+  def ldContext(data:Map[String,Any]):Map[String,String] = {
+    val ldContext = data.getOrElse("@context",Map[String,String]())
+
+    // For the time being the LD @context is not resolved externally and only JSON objects are allowed
+    if (ldContext.isInstanceOf[Map[String,String]])
+      ldContext.asInstanceOf[Map[String,String]]
+    else Map[String,String]()
   }
 
   get(s"${Base}/") {
@@ -89,7 +98,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   post(s"${Base}/entities/") {
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data, Map()))
+    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data, ldContext(data)))
 
     result.getStatusLine.getStatusCode match {
       case 201 => Created(null,Map("Location" -> s"${Base}/entities/${data("id")}"))
@@ -105,7 +114,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data,Map()))
+    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data,ldContext(data)))
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -119,7 +128,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.updateEntity(id,Ld2NgsiModelMapper.toNgsi(data,Map()))
+    val result = NgsiClient.updateEntity(id,Ld2NgsiModelMapper.toNgsi(data,ldContext(data)))
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -164,7 +173,9 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
           val data = result.data.asInstanceOf[List[Map[String,Any]]]
           val out = mutable.ArrayBuffer[Map[String,Any]]()
           for (item <- data) {
-            out += toNgsiLd(item)
+            // TODO: the future this should be more sophisticated such as resolving a remote @context
+            // Or combine local defined terms with remotely defined terms
+            out += toNgsiLd(item,Ngsi2LdModelMapper.ldContext(item))
           }
           Ok(serialize(out.toList),defaultContext)
         }
@@ -184,7 +195,8 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
 
     result.code match {
       case 200 => {
-        val ldData = toNgsiLd(result.data.asInstanceOf[Map[String,Any]])
+        val ngsiData = result.data.asInstanceOf[Map[String,Any]]
+        val ldData = toNgsiLd(ngsiData,Ngsi2LdModelMapper.ldContext(ngsiData))
 
         Ok(serialize(ldData))
       }

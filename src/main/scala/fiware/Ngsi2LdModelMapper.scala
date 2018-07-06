@@ -1,35 +1,61 @@
 package fiware
 
+import java.net.URLDecoder
+
 import scala.collection.mutable
 
 /**
   *
-  *  Data Mapper from NGSI to NGSI-LD information models
+  * Data Mapper from NGSI to NGSI-LD information models
   *
-  *  Coypright (c) 2018 FIWARE Foundation e.V.
+  * Coypright (c) 2018 FIWARE Foundation e.V.
   *
-  *  Author: José M. Cantera
+  * Author: José M. Cantera
   *
-  *  LICENSE: MIT
+  * LICENSE: MIT
   *
   *
   */
 object Ngsi2LdModelMapper extends Mapper {
 
-  def fromNgsi(in: Map[String, Any]) = {
+  def fromNgsi(in: Map[String, Any],ldContext: Map[String, String]) = {
     val out = mutable.Map[String, Any]()
 
     in.keys.foreach(key => key match {
       case "id" => out += (key -> format_uri(in(key).asInstanceOf[String],
         in("type").asInstanceOf[String]))
       case "type" => out += (key -> in(key))
-      case _ => match_key(key, in, out)
+      case _ => match_key(key, in, out, ldReverseContext(ldContext))
     })
 
     out.toMap[String, Any]
   }
 
-  private def match_key(key: String, in: Map[String, Any], out: mutable.Map[String, Any]): Any = {
+  def ldContext(entity: Map[String, Any]) = {
+    var ldContext = Map[String, String]()
+
+    ldContext = entity.getOrElse("@context", ldContext).asInstanceOf[Map[String,String]]
+    ldContext = ldContext.getOrElse("value",ldContext).asInstanceOf[Map[String,String]]
+
+    ldContext
+  }
+
+  private def ldReverseContext(ldContext:Map[String,String]): Map[String, String] = {
+    val reverseContext = mutable.Map[String, String]()
+
+    ldContext.keys.foreach(key => {
+      reverseContext += (ldContext(key) -> key)
+    })
+
+    reverseContext.toMap[String, String]
+  }
+
+  private def reversed(p: String, reverseContext: Map[String, String]) = {
+    reverseContext.getOrElse(URLDecoder.decode(p), URLDecoder.decode(p))
+  }
+
+  private def match_key(key: String, in: Map[String, Any], out: mutable.Map[String, Any],
+                        ldReversedContext: Map[String, String]): Any = {
     val auxIn = in(key).asInstanceOf[Map[String, Any]]
 
     key match {
@@ -43,14 +69,14 @@ object Ngsi2LdModelMapper extends Mapper {
 
           p match {
             case ReferenceAttr(relName) => out = rel_member(p)
-            case _ => out = (p, "Property", "value")
+            case _ => out = (reversed(p, ldReversedContext), "Property", "value")
           }
           val declType = auxIn.getOrElse("type", "Property")
           declType match {
-            case "Relationship" => out = rel_member(p)
-            case "Reference"  => out = rel_member(p)
-            case "geo:json" => out = (p,"GeoProperty","value")
-            case "DateTime" => out = (p,"TemporalProperty","value")
+            case "Relationship" => out = rel_member(reversed(p, ldReversedContext))
+            case "Reference" => out = rel_member(reversed(p, ldReversedContext))
+            case "geo:json" => out = (reversed(p, ldReversedContext), "GeoProperty", "value")
+            case "DateTime" => out = (reversed(p, ldReversedContext), "TemporalProperty", "value")
             case _ => Nil
           }
           out
@@ -73,7 +99,7 @@ object Ngsi2LdModelMapper extends Mapper {
                     propMap("object") = format_uri(entityId, auxMetaProp("value").asInstanceOf[String])
                   }
                 }
-                case _ => match_key(metaKey, auxMeta, propMap)
+                case _ => match_key(metaKey, auxMeta, propMap, ldReversedContext)
               }
             })
           }

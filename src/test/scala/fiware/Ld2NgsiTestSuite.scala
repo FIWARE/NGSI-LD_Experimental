@@ -1,5 +1,7 @@
 package fiware
 
+import java.net.URLEncoder
+
 import org.scalatest.FunSuite
 
 /**
@@ -24,7 +26,7 @@ class Ld2NgsiTestSuite extends FunSuite {
   }
 
   val testNgsiLdData = Map("id"->urn("myId","Car"), "type" -> "Car",
-  "@context" -> "http://example.org/example-context.jsonld",
+  "@context" -> Map("speed" -> "http://example.org/speed"),
   "speed" -> Map("type" -> "Property", "value" -> 45, "observedAt" -> "2018-04-27T12:00:00",
     "accuracy" -> Map("type" -> "Property","value" -> 0.89),
     "providedBy" -> Map("type" -> "Relationship", "object" -> urn("A99","Agent"))),
@@ -34,14 +36,13 @@ class Ld2NgsiTestSuite extends FunSuite {
   "location" -> Map("type" -> "GeoProperty", "value" -> Map("type" -> "Point", "coordinates" -> List(-4.0,41.0)))
   )
 
-  val ldContext= Map("speed" -> "http://example.org/speed")
+  val ldContext = testNgsiLdData("@context").asInstanceOf[Map[String,String]]
 
   def ldContextMap(term:String) = {
-    ldContext.getOrElse(term,term)
+    URLEncoder.encode(ldContext.getOrElse(term,term))
   }
 
   val result = Ld2NgsiModelMapper.toNgsi(testNgsiLdData,ldContext)
-
 
   def node(node:Any) = {
     node.asInstanceOf[Map[String,Any]]

@@ -1,5 +1,7 @@
 package fiware
 
+import java.net.URLEncoder
+
 import scala.collection.mutable
 
 /**
@@ -22,13 +24,19 @@ object Ld2NgsiModelMapper extends Mapper {
     }
   }
 
+  def ldContextualize(ldContext:Map[String,String],term:String) = {
+    URLEncoder.encode(ldContext.getOrElse(term,term))
+  }
+
   def toNgsi(in: Map[String, Any],ldContext:Map[String,String]) = {
     val out = mutable.Map[String, Any]()
 
     in.keys.foreach(key => key match {
       case "id" => out += (key -> in(key))
-      case "type" => out += (key -> in(key))
-      case "@context" => out += (key -> Map("type" -> "@context","value" -> in(key)))
+      case "type" => out += (key -> ldContextualize(ldContext,in(key).asInstanceOf[String]))
+      case "@context" => {
+        out += (key -> Map("type" -> "@context","value" -> in(key)))
+      }
       case _ => match_key_ngsi(key, in, out,null,ldContext)
     })
 
@@ -76,6 +84,6 @@ object Ld2NgsiModelMapper extends Mapper {
     if (metadata.size > 0)
       attrMap += ("metadata" -> metadata.toMap[String,Any])
 
-    out += (ldContext.getOrElse(key,key) -> attrMap.toMap[String,Any])
+    out += (ldContextualize(ldContext,key) -> attrMap.toMap[String,Any])
   }
 }
