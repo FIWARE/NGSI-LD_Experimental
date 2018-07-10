@@ -21,23 +21,27 @@ object Ngsi2LdModelMapper extends Mapper {
   def fromNgsi(in: Map[String, Any],ldContext: Map[String, String]) = {
     val out = mutable.Map[String, Any]()
 
+    val revContext = ldReverseContext(ldContext)
+
     in.keys.foreach(key => key match {
       case "id" => out += (key -> format_uri(in(key).asInstanceOf[String],
         in("type").asInstanceOf[String]))
-      case "type" => out += (key -> in(key))
-      case _ => match_key(key, in, out, ldReverseContext(ldContext))
+      case "type" => out += (key -> reversed(in(key).asInstanceOf[String],revContext))
+      case _ => match_key(key, in, out, revContext)
     })
 
     out.toMap[String, Any]
   }
 
   def ldContext(entity: Map[String, Any]) = {
-    var ldContext = Map[String, String]()
+    val ldContextMap = entity.getOrElse("@context",  Map[String, Any]()).asInstanceOf[Map[String,Any]]
 
-    ldContext = entity.getOrElse("@context", ldContext).asInstanceOf[Map[String,String]]
-    ldContext = ldContext.getOrElse("value",ldContext).asInstanceOf[Map[String,String]]
+    val ldContext = ldContextMap.getOrElse("value",Map[String,String]())
 
-    ldContext
+    // TODO: Resolve the @context in case it is not inline
+    if (ldContext.isInstanceOf[Map[String,String]])
+      ldContext.asInstanceOf[Map[String,String]]
+    else Map[String,String]()
   }
 
   private def ldReverseContext(ldContext:Map[String,String]): Map[String, String] = {

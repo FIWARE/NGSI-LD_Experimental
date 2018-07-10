@@ -40,6 +40,74 @@
 			"response": []
 		},
 		{
+			"name": "Initial_Clean_Up_2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6fde8980-2314-44fb-b6f3-769d6dace0ef",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle2:V1234-@Context"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Initial_Clean_Up_3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6fde8980-2314-44fb-b6f3-769d6dace0ef",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context-Inline",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle2:V1234-@Context-Inline"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Create Entity",
 			"event": [
 				{
@@ -112,6 +180,51 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle2:V1234-@Context\",\n\t\"type\": \"Vehicle2\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 45\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t},\n\t\"@context\": \"http://example.org/ngsi-ld-context.jsonld\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Entity with inline @context",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3720b909-7238-4f30-8927-ec492da79293",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle2:V1234-@Context-Inline\",\n\t\"type\": \"Vehicle3\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 45\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t},\n\t\"@context\": {\n\t\t\"Vehicle3\": \"http://example.org/Vehicle3\",\n\t\t\"speed\": \"http://example.org/speed\",\n\t\t\"isParked\": \"http://example.org/isParked\"\n\t}\n}"
 				},
 				"url": {
 					"raw": "http://localhost:1030/api/entities/",
@@ -315,6 +428,54 @@
 						"api",
 						"entities",
 						"urn:ngsi-ld:Vehicle2:V1234-@Context"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Entity Data with inline @context",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "dd22ea5f-cf3a-4243-b459-69a8d1737451",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response code is success\", function () {",
+							"    pm.response.to.be.success;",
+							"});",
+							"",
+							"pm.test(\"Response contains one speed property of value 100\",function () {",
+							"    pm.expect(pm.response.json().speed.value).to.equal(45);",
+							"});",
+							"",
+							"pm.test(\"Entity Type is Vehicle3\",function () {",
+							"    pm.expect(pm.response.json().type).to.equal(\"Vehicle3\");",
+							"});",
+							"",
+							"pm.test(\"Response contains @context\",function () {",
+							"    pm.expect(pm.response.json()[\"@context\"].Vehicle3).to.equal(\"http://example.org/Vehicle3\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context-Inline",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1030",
+					"path": [
+						"api",
+						"entities",
+						"urn:ngsi-ld:Vehicle2:V1234-@Context-Inline"
 					]
 				}
 			},
