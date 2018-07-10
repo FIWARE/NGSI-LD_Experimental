@@ -1,5 +1,7 @@
 package fiware
 
+import java.net.URLEncoder
+
 import org.scalatest.FunSuite
 
 /**
@@ -24,7 +26,7 @@ class Ld2NgsiTestSuite extends FunSuite {
   }
 
   val testNgsiLdData = Map("id"->urn("myId","Car"), "type" -> "Car",
-  "@context" -> "http://example.org/example-context.jsonld",
+  "@context" -> Map("speed" -> "http://example.org/speed"),
   "speed" -> Map("type" -> "Property", "value" -> 45, "observedAt" -> "2018-04-27T12:00:00",
     "accuracy" -> Map("type" -> "Property","value" -> 0.89),
     "providedBy" -> Map("type" -> "Relationship", "object" -> urn("A99","Agent"))),
@@ -34,9 +36,13 @@ class Ld2NgsiTestSuite extends FunSuite {
   "location" -> Map("type" -> "GeoProperty", "value" -> Map("type" -> "Point", "coordinates" -> List(-4.0,41.0)))
   )
 
-  val result = Ld2NgsiModelMapper.toNgsi(testNgsiLdData)
+  val ldContext = testNgsiLdData("@context").asInstanceOf[Map[String,String]]
 
-  // Console.println(JsonSerializer.serialize(result))
+  def ldContextMap(term:String) = {
+    URLEncoder.encode(ldContext.getOrElse(term,term))
+  }
+
+  val result = Ld2NgsiModelMapper.toNgsi(testNgsiLdData,ldContext)
 
   def node(node:Any) = {
     node.asInstanceOf[Map[String,Any]]
@@ -62,19 +68,19 @@ class Ld2NgsiTestSuite extends FunSuite {
 
 
   test("Nodes of type property should not have any type") {
-    assert(node(result("speed")).getOrElse("type",null) == null)
+    assert(node(result(ldContextMap("speed"))).getOrElse("type",null) == null)
   }
 
   test("Nodes of type property should have a value") {
-    assert(node(result("speed"))("value") == 45)
+    assert(node(result(ldContextMap("speed")))("value") == 45)
   }
 
   test("Nodes of type relationship should be mapped to type Relationship") {
-    assert(node(result("parkedIn"))("type") == "Relationship")
+    assert(node(result(ldContextMap("parkedIn")))("type") == "Relationship")
   }
 
   test("Nodes of type relationship should have a value which is a URI") {
-    assert_urn(node(result("parkedIn"))("value"),"P99","Parking")
+    assert_urn(node(result(ldContextMap("parkedIn")))("value"),"P99","Parking")
     assert(metadata(result,"parkedIn","entityType")._1 == "Parking")
   }
 
@@ -88,19 +94,19 @@ class Ld2NgsiTestSuite extends FunSuite {
   }
 
   test("observedAt should be mapped to a timestamp metadata") {
-    assert(metadata(result,"speed","timestamp")._1 == "2018-04-27T12:00:00")
+    assert(metadata(result,ldContextMap("speed"),"timestamp")._1 == "2018-04-27T12:00:00")
   }
 
   test("Property of property should be mapped to metadata") {
-    assert(metadata(result,"speed","accuracy")._1 == 0.89)
+    assert(metadata(result,ldContextMap("speed"),"accuracy")._1 == 0.89)
   }
 
   test("Property of property should not have metadata") {
-    assert(node(node(node(result("speed"))("metadata"))("accuracy")).getOrElse("metadata",null) == null)
+    assert(node(node(node(result(ldContextMap("speed")))("metadata"))("accuracy")).getOrElse("metadata",null) == null)
   }
 
   test("Relationship of property should not have metadata") {
-    assert(node(node(node(result("speed"))("metadata"))("providedBy")).getOrElse("metadata",null) == null)
+    assert(node(node(node(result(ldContextMap("speed")))("metadata"))("providedBy")).getOrElse("metadata",null) == null)
   }
 
   test("Property of relationship should be mapped to metadata") {
@@ -112,7 +118,7 @@ class Ld2NgsiTestSuite extends FunSuite {
   }
 
   test("Relationship of property should be mapped to metadata") {
-    val meta = metadata(result,"speed","providedBy")
+    val meta = metadata(result,ldContextMap("speed"),"providedBy")
     assert_urn(meta._1, "A99","Agent")
     assert(meta._2 == "Relationship")
   }

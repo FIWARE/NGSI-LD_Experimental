@@ -17,11 +17,11 @@ class Ngsi2LdTestSuite extends FunSuite {
 
   // TODO: Divide in different simple and smaller cases
   val testData = Map("id"->"urn:ngsi-ld:Car:myId", "type" -> "MyType",
-    "@context" -> Map("type" -> "@context", "value" -> "http://example.org/example-context.jsonld"),
+    "@context" -> Map("type" -> "@context", "value" -> Map("speed" -> "http://example.org/speed")),
     "refOther" -> Map("type"->"Relationship","value" -> "anId",
       "metadata" -> Map("entityType" -> Map("value" -> "Parking"))),
     "dateCreated" -> Map("value" -> "2018-04-23T12:00:00", "type" -> "DateTime"),
-    "speed" -> Map("value"->100,
+    "http://example.org/speed" -> Map("value"->100,
       "metadata" -> Map("accuracy" -> Map("value" -> 0.89),
         "timestamp" -> Map("value" -> "2018-04-23T12:00:00",
           "type" -> "DateTime"),
@@ -31,7 +31,7 @@ class Ngsi2LdTestSuite extends FunSuite {
     "typelessAttr" -> Map("value" -> "hello")
   )
 
-  val result = Ngsi2LdModelMapper.fromNgsi(testData)
+  val result = Ngsi2LdModelMapper.fromNgsi(testData,Ngsi2LdModelMapper.ldContext(testData))
 
   def node(node:Any) = {
     node.asInstanceOf[Map[String,Any]]
@@ -46,7 +46,7 @@ class Ngsi2LdTestSuite extends FunSuite {
   }
 
   test("@context should be a term-value element in the output JSON") {
-    assert(result("@context") == node(testData("@context"))("value"))
+    assert(node(result("@context"))("speed") == "http://example.org/speed")
   }
 
   test("dateCreated should be mapped to createdAt") {
