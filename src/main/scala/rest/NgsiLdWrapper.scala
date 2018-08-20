@@ -198,7 +198,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
         val ngsiData = result.data.asInstanceOf[Map[String,Any]]
         val ldData = toNgsiLd(ngsiData,Ngsi2LdModelMapper.ldContext(ngsiData))
 
-        Ok(serialize(ldData))
+        Ok(serialize(ldData),defaultContext)
       }
       case 404 => NotFound(serialize(LdErrors.NotFound()))
       case _ => InternalServerError()

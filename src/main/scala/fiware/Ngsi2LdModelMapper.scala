@@ -95,7 +95,7 @@ object Ngsi2LdModelMapper extends Mapper {
             auxMeta.keys.foreach(metaKey => {
               val auxMetaProp = auxMeta(metaKey).asInstanceOf[Map[String, Any]]
               metaKey match {
-                case "timestamp" => propMap += ("observedAt" -> auxMetaProp("value"))
+                case "timestamp" => propMap += ("observedAt" -> auxMetaProp("value").asInstanceOf[String].dropRight(1));
                 case "unitCode" => propMap += ("unitCode" -> auxMetaProp("value"))
                 case "entityType" => {
                   val entityId = propMap.getOrElse("object", null).asInstanceOf[String]
