@@ -179,7 +179,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
           for (item <- data) {
             // TODO: the future this should be more sophisticated such as resolving a remote @context
             // Or combine local defined terms with remotely defined terms
-            out += toNgsiLd(item,Ngsi2LdModelMapper.ldContext(item),tenant)
+            out += toNgsiLd(item,Ngsi2LdModelMapper.ldContext(item))
           }
           Ok(serialize(out.toList),defaultContext)
         }
