@@ -23,7 +23,7 @@ class Ngsi2LdTestSuite extends FunSuite {
     "dateCreated" -> Map("value" -> "2018-04-23T12:00:00", "type" -> "DateTime"),
     "http://example.org/speed" -> Map("value"->100,
       "metadata" -> Map("accuracy" -> Map("value" -> 0.89),
-        "timestamp" -> Map("value" -> "2018-04-23T12:00:00",
+        "timestamp" -> Map("value" -> "2018-04-23T12:00:00Z",
           "type" -> "DateTime"),
         "providedBy" -> Map("type" -> "Reference", "value" -> "4567"))),
     "location" -> Map("type" -> "geo:json","value" -> Map("type" -> "Point", "coordinates" -> List(-4,55))),
