@@ -61,7 +61,7 @@ $ curl http://localhost:1030/configuration
 ## How to invoke API operations
 
 ```console
-$ curl http://localhost:1030/api/entities/ 
+$ curl http://localhost:1030/ngsi-ld/v1/entities/ 
 ```
 
 ## See also:
