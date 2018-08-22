@@ -32,7 +32,15 @@ object Ld2NgsiModelMapper extends Mapper {
     val out = mutable.Map[String, Any]()
 
     in.keys.foreach(key => key match {
-      case "id" => out += (key -> in(key))
+      case "id" => {
+        val id = in(key).asInstanceOf[String]
+        id match {
+          case UrnPattern(t,id) => {
+            out += (key -> in(key))
+          }
+          case _ => throw new Exception("Id shall be a URI")
+        }
+      }
       case "type" => out += (key -> ldContextualize(ldContext,in(key).asInstanceOf[String]))
       case "@context" => {
         out += (key -> Map("type" -> "@context","value" -> in(key)))
@@ -63,11 +71,16 @@ object Ld2NgsiModelMapper extends Mapper {
           }
           case "Relationship" => {
             val urnObject = auxIn("object")
+            if (urnObject == null) {
+              throw new Exception("Null not allowed")
+            }
             attrMap += ("type" -> "Relationship", "value" -> urnObject)
             if (parentKey == null)
               metadata += ("entityType" -> Map("value" -> parse_urn(urnObject.asInstanceOf[String])._2))
           }
-          case "GeoProperty" => attrMap += ("type" -> "geo:json", "value" -> auxIn("value"))
+          case "GeoProperty" => {
+            attrMap += ("type" -> "geo:json", "value" -> auxIn("value"))
+          }
           case "TemporalProperty" => attrMap += ("type" -> "DateTime","value" -> auxIn("value"))
           case _ => throw new Exception("Node type not provided")
         }

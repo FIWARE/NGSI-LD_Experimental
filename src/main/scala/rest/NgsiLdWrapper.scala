@@ -102,15 +102,22 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   post(s"${Base}/entities/") {
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
 
-    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data, ldContext(data)), tenant())
+    try {
+      val ngsiData = Ld2NgsiModelMapper.toNgsi(data, ldContext(data))
 
-    result.getStatusLine.getStatusCode match {
-      case 201 => Created(null, Map("Location" -> s"${Base}/entities/${data("id")}"))
-      case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
-      case 422 => {
-        Conflict(serialize(LdErrors.AlreadyExists()))
+
+      val result = NgsiClient.createEntity(ngsiData, tenant())
+
+      result.getStatusLine.getStatusCode match {
+        case 201 => Created(null, Map("Location" -> s"${Base}/entities/${data("id")}"))
+        case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+        case 422 => {
+          Conflict(serialize(LdErrors.AlreadyExists()))
+        }
+        case _ => InternalServerError()
       }
-      case _ => InternalServerError()
+    } catch {
+        case _ => BadRequest(LdErrors.BadRequestData())
     }
   }
 

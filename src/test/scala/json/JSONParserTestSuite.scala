@@ -59,4 +59,10 @@ class JSONParserTestSuite extends FunSuite {
     val data = "{}"
     assert(parse(data) == Map())
   }
+
+  test("Should parse GeoJSON Structure") {
+    val data = """{"location": {"type": "GeoProperty","value": { "type": "Point", "coordinates": [-8, 40]}}}"""
+    val expected = Map("location"->Map("type" -> "GeoProperty", "value"->Map("type"->"Point", "coordinates" -> List(-8,40))))
+    assert(parse(data) == expected)
+  }
 }

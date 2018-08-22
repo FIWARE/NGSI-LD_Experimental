@@ -62,6 +62,7 @@ object NgsiClient {
 
   def createEntity(entityData:Map[String,Any],tenant:Option[String]=None) = {
     val data = JSONSerializer.serialize(entityData)
+
     val postRequest = new HttpPost(s"${apiBase}/entities/")
 
     postRequest.setHeader("Content-Type","application/json")

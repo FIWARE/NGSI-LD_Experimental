@@ -45,6 +45,15 @@ class JSONSerializerTestSuite extends FunSuite {
     assert(JSONSerializer.serialize(data) == """{"c1":"v1","c2":45,"c3":[34,56],"c4":{"c41":"v"}}""")
   }
 
+  test("Should serialize nested map") {
+    val data = Map("c1" -> "v1","c2"->45,"c3" -> List(34,56), "c4" -> Map("c41" -> "v", "c42" -> Map("r" -> "s"),
+    "c43" -> List(3,4)))
+
+    System.out.println(JSONSerializer.serialize(data))
+
+    assert(JSONSerializer.serialize(data) == """{"c1":"v1","c2":45,"c3":[34,56],"c4":{"c41":"v","c42":{"r":"s"},"c43":[3,4]}}""")
+  }
+
   test("Should serialize empty map") {
     val data = Map()
 
