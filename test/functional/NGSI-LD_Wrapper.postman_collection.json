@@ -24,7 +24,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V1234",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V1234",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -58,7 +58,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle2:V1234-@Context",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -92,7 +92,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context-Inline",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle2:V1234-@Context-Inline",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -137,7 +137,7 @@
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V1234\",\n\t\"type\": \"Vehicle\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 100\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -182,7 +182,7 @@
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle2:V1234-@Context\",\n\t\"type\": \"Vehicle2\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 45\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t},\n\t\"@context\": \"http://example.org/ngsi-ld-context.jsonld\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -227,7 +227,7 @@
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle2:V1234-@Context-Inline\",\n\t\"type\": \"Vehicle3\",\n\t\"speed\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": 45\n\t},\n\t\"isParked\": {\n\t\t\"type\": \"Relationship\",\n\t\t\"object\": \"urn:ngsi-ld:OffStreetParking:Central\"\n\t},\n\t\"@context\": {\n\t\t\"Vehicle3\": \"http://example.org/Vehicle3\",\n\t\t\"speed\": \"http://example.org/speed\",\n\t\t\"isParked\": \"http://example.org/isParked\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -277,7 +277,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/?type=Vehicle",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/?type=Vehicle",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -328,7 +328,7 @@
 					"raw": "{\n\t\"extraAttr\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Test\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V1234/attrs/",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V1234/attrs/",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -374,7 +374,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V1234",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V1234",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -418,7 +418,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle2:V1234-@Context",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -466,7 +466,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle2:V1234-@Context-Inline",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle2:V1234-@Context-Inline",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -506,7 +506,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V0000000",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V0000000",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -536,7 +536,7 @@
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V89000\",\n\t\"type\": \"Vehicle\",\n\t\"brandName\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Mercedes\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -580,7 +580,7 @@
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V89000\",\n\t\"type\": \"Vehicle\",\n\t\"brandName\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Mercedes\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000/attrs/brandName",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V89000/attrs/brandName",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -626,7 +626,7 @@
 					"raw": "{\n\t\"id\": \"urn:ngsi-ld:Vehicle:V89000\",\n\t\"type\": \"Vehicle\",\n\t\"brandName\": {\n\t\t\"type\": \"Property\",\n\t\t\"value\": \"Mercedes\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000/attrs/brandName",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V89000/attrs/brandName",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -665,7 +665,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V89000",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -705,7 +705,7 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:1030/api/entities/urn:ngsi-ld:Vehicle:V89000",
+					"raw": "http://localhost:1030/ngsi-ld/v1/entities/urn:ngsi-ld:Vehicle:V89000",
 					"protocol": "http",
 					"host": [
 						"localhost"

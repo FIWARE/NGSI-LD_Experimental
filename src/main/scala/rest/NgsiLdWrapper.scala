@@ -39,6 +39,10 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     NgsiClient.endpoint(getServletContext.initParameters(NgsiEndpoint))
   }
 
+  def tenant():Option[String] = {
+    request.header("Fiware-Service")
+  }
+
   def toNgsiLd(in:Map[String,Any],ldContext:Map[String,String]) = {
     if (mode == KeyValues) in
     else Ngsi2LdModelMapper.fromNgsi(in,ldContext)
@@ -98,7 +102,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   post(s"${Base}/entities/") {
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data, ldContext(data)))
+    val result = NgsiClient.createEntity(Ld2NgsiModelMapper.toNgsi(data, ldContext(data)), tenant())
 
     result.getStatusLine.getStatusCode match {
       case 201 => Created(null,Map("Location" -> s"${Base}/entities/${data("id")}"))
@@ -114,7 +118,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data,ldContext(data)))
+    val result = NgsiClient.appendAttributes(id,Ld2NgsiModelMapper.toNgsi(data,ldContext(data)), tenant())
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -128,7 +132,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val data = ParserUtil.parse(request.body).asInstanceOf[Map[String,Any]]
 
-    val result = NgsiClient.updateEntity(id,Ld2NgsiModelMapper.toNgsi(data,ldContext(data)))
+    val result = NgsiClient.updateEntity(id,Ld2NgsiModelMapper.toNgsi(data,ldContext(data)), tenant())
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -139,7 +143,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   }
 
   delete(s"${Base}/entities/:id") {
-    val result = NgsiClient.deleteEntity(params("id"))
+    val result = NgsiClient.deleteEntity(params("id"), tenant())
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -150,7 +154,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
 
   // Delete entity attribute
   delete(s"${Base}/entities/:id/attrs/:attrId") {
-    val result = NgsiClient.deleteEntityAttribute(params("id"), params("attrId"))
+    val result = NgsiClient.deleteEntityAttribute(params("id"), params("attrId"), tenant())
 
     result.getStatusLine.getStatusCode match {
       case 204 => NoContent()
@@ -167,7 +171,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     }
     else {
       val queryString = request.getQueryString
-      val result = NgsiClient.queryEntities(queryString)
+      val result = NgsiClient.queryEntities(queryString, tenant())
       result.code match {
         case 200 => {
           val data = result.data.asInstanceOf[List[Map[String,Any]]]
@@ -191,7 +195,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val id = params("id")
     val queryString = request.getQueryString
 
-    val result = NgsiClient.entityById(id,queryString)
+    val result = NgsiClient.entityById(id,queryString, tenant())
 
     result.code match {
       case 200 => {
