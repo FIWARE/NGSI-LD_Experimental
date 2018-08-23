@@ -34,9 +34,14 @@ object Ngsi2LdModelMapper extends Mapper {
   }
 
   def ldContext(entity: Map[String, Any]) = {
-    val ldContextMap = entity.getOrElse("@context",  Map[String, Any]()).asInstanceOf[Map[String,Any]]
+    var ldContextMap = entity.getOrElse("@context",  Map[String, Any]())
 
-    val ldContext = ldContextMap.getOrElse("value",Map[String,String]())
+    // Temporal workaround
+    if (ldContextMap.isInstanceOf[String]) {
+      ldContextMap = Map[String,String]()
+    }
+
+    val ldContext = ldContextMap.asInstanceOf[Map[String,Any]].getOrElse("value",Map[String,String]())
 
     // TODO: Resolve the @context in case it is not inline
     if (ldContext.isInstanceOf[Map[String,String]])
