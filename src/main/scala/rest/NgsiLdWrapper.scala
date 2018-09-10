@@ -79,6 +79,24 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     else Map[String, String]()
   }
 
+  def partialAttrCheck(payloadData:Map[String,Any],ngsiData:Any,attribute:String):ValidationResult = {
+    if (payloadData.isEmpty)
+      EmptyPayload()
+    else {
+      // If the Entity does not exist or currently does not have such an Attribute 404 is returned
+      if (ngsiData == None)
+        EntityNotFound()
+      else {
+        val entityData = ngsiData.asInstanceOf[Map[String, Any]]
+        // TODO: This might need to be checked taking into account a @context
+        if (!entityData.contains(attribute))
+          AttributeNotFound()
+        else
+          ValidInput()
+      }
+    }
+  }
+
   get(s"${Base}/") {
     val out = Map(
       "entities_url" -> s"${Base}/entities/",
@@ -117,7 +135,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
         case _ => InternalServerError()
       }
     } catch {
-        case _ => BadRequest(LdErrors.BadRequestData())
+      case _ => BadRequest(LdErrors.BadRequestData())
     }
   }
 
@@ -146,6 +164,49 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
       case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
       case 404 => NotFound(serialize(LdErrors.NotFound()))
       case _ => InternalServerError()
+    }
+  }
+
+  patch(s"${Base}/entities/:id/attrs/:attrId") {
+    val id = params("id")
+    val attribute = params("attrId")
+    // Attribute Data
+    val attrData = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
+
+    // First Entity Content is queried
+    val ngsiData = NgsiClient.entityById(id, null, tenant()).data
+
+    val valResult = partialAttrCheck(attrData,ngsiData,attribute)
+
+    valResult match {
+      case EmptyPayload() =>  BadRequest(serialize(LdErrors.NotFound()))
+      case EntityNotFound() => NotFound(serialize(LdErrors.NotFound()))
+      case AttributeNotFound() => NotFound(serialize(LdErrors.NotFound()))
+      case ValidInput() => {
+        val entityData = ngsiData.asInstanceOf[Map[String, Any]]
+
+        var ldData = toNgsiLd(entityData, Ngsi2LdModelMapper.ldContext(entityData))
+
+        // Then Entity data is properly updated with the new values, but not needed stuff is removed
+        ldData -= ("id", "type")
+        var affectedAttribute = ldData(attribute).asInstanceOf[Map[String, Any]]
+
+        // TODO: check null values so that actually the data item is removed
+        attrData.keys.foreach(key => {
+          affectedAttribute = affectedAttribute.updated(key,attrData(key))
+        })
+
+        ldData = ldData.updated(attribute,affectedAttribute)
+
+        val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(ldData, ldContext(ldData)), tenant())
+
+        result.getStatusLine.getStatusCode match {
+          case 204 => NoContent()
+          case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+          case 404 => NotFound(serialize(LdErrors.NotFound()))
+          case _ => InternalServerError()
+        }
+      }
     }
   }
 
@@ -215,8 +276,8 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     Ok(serialize(myData))
   }
 
-  // Csources
-  get(s"${Base}/csources/") {
+  // Csource Registrations
+  get(s"${Base}/csourceRegistrations/") {
     val myData = Map("a" -> 45, "b" -> "hola")
     Ok(serialize(myData))
   }
