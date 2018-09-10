@@ -186,16 +186,14 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
         val entityData = ngsiData.asInstanceOf[Map[String, Any]]
 
         var ldData = toNgsiLd(entityData, Ngsi2LdModelMapper.ldContext(entityData))
-
         // Then Entity data is properly updated with the new values, but not needed stuff is removed
         ldData -= ("id", "type")
-        var affectedAttribute = ldData(attribute).asInstanceOf[Map[String, Any]]
 
+        var affectedAttribute = ldData(attribute).asInstanceOf[Map[String, Any]]
         // TODO: check null values so that actually the data item is removed
         attrData.keys.foreach(key => {
           affectedAttribute = affectedAttribute.updated(key,attrData(key))
         })
-
         ldData = ldData.updated(attribute,affectedAttribute)
 
         val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(ldData, ldContext(ldData)), tenant())
