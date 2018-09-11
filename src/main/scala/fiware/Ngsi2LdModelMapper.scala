@@ -100,7 +100,10 @@ object Ngsi2LdModelMapper extends Mapper {
             auxMeta.keys.foreach(metaKey => {
               val auxMetaProp = auxMeta(metaKey).asInstanceOf[Map[String, Any]]
               metaKey match {
-                case "timestamp" => propMap += ("observedAt" -> auxMetaProp("value").asInstanceOf[String].dropRight(1));
+                case "timestamp" => {
+                  // Removing timezone and trailing fractional seconds (in the ETSI spec the ',' should be the separator)
+                  propMap += ("observedAt" -> auxMetaProp("value").asInstanceOf[String].dropRight(1).split('.')(0))
+                }
                 case "unitCode" => propMap += ("unitCode" -> auxMetaProp("value"))
                 case "entityType" => {
                   val entityId = propMap.getOrElse("object", null).asInstanceOf[String]

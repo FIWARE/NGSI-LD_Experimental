@@ -5,8 +5,6 @@ import fiware._
 import javax.servlet.ServletConfig
 import json._
 import main.Configuration
-import org.apache.http.HttpEntity
-import org.apache.http.util.EntityUtils
 import utils._
 import JSONSerializer.serialize
 
@@ -25,13 +23,13 @@ import scala.collection.mutable
   *
   *
   */
-class NgsiLdWrapper extends ScalatraServlet with Configuration {
+class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils {
   private val Base = System.getenv.getOrDefault(NgsiLdApiPath, DefaultNgsiLdApiPath)
 
   private val JsonMimeType = "application/json"
-  private val Version = "0.1"
+  private val JsonLdMimeType = "application/ld+json"
 
-  private val KeyValues = "keyValues"
+  private val Version = "0.1"
 
   override def init(servletConfig: ServletConfig) = {
     super.init(servletConfig)
@@ -43,56 +41,39 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     request.header("Fiware-Service")
   }
 
-  def toNgsiLd(in: Map[String, Any], ldContext: Map[String, String]) = {
-    if (mode == KeyValues) in
-    else Ngsi2LdModelMapper.fromNgsi(in, ldContext)
-  }
-
-  def mode() = {
-    var options = params.getOrElse("options", null)
-    if (options != null)
-      if (options.split(",").indexOf(KeyValues) != -1)
-        options = KeyValues
-
-    options
-  }
-
-  def errorDescription(httpEntity: HttpEntity) = {
-    val errorPayload = ParserUtil.parse(EntityUtils.toString(
-      httpEntity, "UTF-8")).asInstanceOf[Map[String, String]]
-
-    Some(errorPayload("description"))
-  }
-
-  def defaultContext = Map("Link" -> DefaultContextLink)
 
   before() {
-    contentType = JsonMimeType
+    val requestContentType = request.header("Content-Type")
+    val requestAccept = request.header("Accept")
+
+    if (!requestContentType.isEmpty && requestContentType.get != JsonMimeType && requestContentType.get != JsonLdMimeType) {
+      halt(415)
+    }
+    else  if (!requestAccept.isEmpty) {
+      val mimeTypes = parseAccept(requestAccept.get)
+      if(!mimeTypes.contains("*/*") && !mimeTypes.contains(JsonMimeType) && ! mimeTypes.contains(JsonLdMimeType)) {
+        halt(415)
+      }
+    }
   }
 
-  def ldContext(data: Map[String, Any]): Map[String, String] = {
-    val ldContext = data.getOrElse("@context", Map[String, String]())
+  after() {
+    val requestContentType = request.header("Content-Type")
+    val requestAccept = request.header("Accept")
 
-    // For the time being the LD @context is not resolved externally and only JSON objects are allowed
-    if (ldContext.isInstanceOf[Map[String, String]])
-      ldContext.asInstanceOf[Map[String, String]]
-    else Map[String, String]()
-  }
-
-  def partialAttrCheck(payloadData:Map[String,Any],ngsiData:Any,attribute:String):ValidationResult = {
-    if (payloadData.isEmpty)
-      EmptyPayload()
+    // Accept header has the priority
+    if (!requestAccept.isEmpty) {
+      val mimeTypes = parseAccept(requestAccept.get)
+      if (mimeTypes.contains(JsonLdMimeType)) {
+        contentType = JsonLdMimeType
+      }
+      else if (mimeTypes.contains(JsonMimeType)) {
+        contentType = JsonMimeType
+      }
+    }
     else {
-      // If the Entity does not exist or currently does not have such an Attribute 404 is returned
-      if (ngsiData == None)
-        EntityNotFound()
-      else {
-        val entityData = ngsiData.asInstanceOf[Map[String, Any]]
-        // TODO: This might need to be checked taking into account a @context
-        if (!entityData.contains(attribute))
-          AttributeNotFound()
-        else
-          ValidInput()
+      if (!requestContentType.isEmpty) {
+        contentType = requestContentType.get
       }
     }
   }
@@ -101,7 +82,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
     val out = Map(
       "entities_url" -> s"${Base}/entities/",
       "subscriptions_url" -> s"${Base}/subscriptions/",
-      "csources_url" -> s"${Base}/csources/"
+      "csourceRegistrations_url" -> s"${Base}/csourceRegistrations/"
     )
 
     Ok(serialize(out))
@@ -135,7 +116,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
         case _ => InternalServerError()
       }
     } catch {
-      case _ => BadRequest(LdErrors.BadRequestData())
+      case _ :Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
@@ -185,7 +166,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
       case ValidInput() => {
         val entityData = ngsiData.asInstanceOf[Map[String, Any]]
 
-        var ldData = toNgsiLd(entityData, Ngsi2LdModelMapper.ldContext(entityData))
+        var ldData = toNgsiLd(params,entityData, Ngsi2LdModelMapper.ldContext(entityData))
         // Then Entity data is properly updated with the new values, but not needed stuff is removed
         ldData -= ("id", "type")
 
@@ -230,7 +211,14 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   }
 
   get(s"${Base}/entities/") {
-    val queryString = request.getQueryString
+    var queryString = request.getQueryString
+
+    val attrs = params.getOrElse("attrs",null)
+    if (attrs != null) {
+      // Hack to allow getting the @context
+      queryString += s"&attrs=${attrs},@context"
+    }
+
     val result = NgsiClient.queryEntities(queryString, tenant())
     result.code match {
       case 200 => {
@@ -239,7 +227,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
         for (item <- data) {
           // TODO: the future this should be more sophisticated such as resolving a remote @context
           // Or combine local defined terms with remotely defined terms
-          out += toNgsiLd(item, Ngsi2LdModelMapper.ldContext(item))
+          out += toNgsiLd(params,item, Ngsi2LdModelMapper.ldContext(item))
         }
         Ok(serialize(out.toList), defaultContext)
       }
@@ -252,14 +240,20 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration {
   // Entity by id
   get(s"${Base}/entities/:id") {
     val id = params("id")
-    val queryString = request.getQueryString
+    var queryString = request.getQueryString
+
+    val attrs = params.getOrElse("attrs",null)
+    if (attrs != null) {
+      // Hack to allow getting the @context
+      queryString += s"&attrs=${attrs},@context"
+    }
 
     val result = NgsiClient.entityById(id, queryString, tenant())
 
     result.code match {
       case 200 => {
         val ngsiData = result.data.asInstanceOf[Map[String, Any]]
-        val ldData = toNgsiLd(ngsiData, Ngsi2LdModelMapper.ldContext(ngsiData))
+        val ldData = toNgsiLd(params,ngsiData, Ngsi2LdModelMapper.ldContext(ngsiData))
 
         Ok(serialize(ldData), defaultContext)
       }

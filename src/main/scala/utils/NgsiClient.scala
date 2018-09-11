@@ -44,6 +44,7 @@ object NgsiClient {
   }
 
   def entityById(id:String,queryString:String,tenant:Option[String]=None) = {
+
     val getRequest = new HttpGet(s"${apiBase}/entities/${id}?${queryStr(queryString)}")
 
     this.tenant(tenant,getRequest)
