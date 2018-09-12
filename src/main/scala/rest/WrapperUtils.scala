@@ -76,12 +76,12 @@ trait WrapperUtils {
           LdContextResolver.resolveContext(l.asInstanceOf[String], ldContextResolved)
         }
         else if (l.isInstanceOf[Map[String, String]]) {
-          ldContextResolved ++ l.asInstanceOf[Map[String, String]]
+          ldContextResolved ++= l.asInstanceOf[Map[String, String]]
         }
       })
     }
     else if (ldContextValue.isInstanceOf[Map[String, String]]) {
-      ldContextResolved ++ ldContextValue.asInstanceOf[Map[String, String]]
+      ldContextResolved ++= ldContextValue.asInstanceOf[Map[String, String]]
     }
 
     ldContextResolved.toMap[String, String]

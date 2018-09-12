@@ -104,7 +104,6 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     try {
       val ngsiData = Ld2NgsiModelMapper.toNgsi(data, ldContext(data))
 
-
       val result = NgsiClient.createEntity(ngsiData, tenant())
 
       result.getStatusLine.getStatusCode match {

@@ -18,9 +18,9 @@ import scala.collection.mutable
   *
   */
 object LdContextResolver {
-  private def ldContexts = mutable.Map[String,Map[String,Any]]()
+  private val ldContexts = mutable.Map[String, Map[String, Any]]()
 
-  def resolveContext(ldContextLoc:String,ldContextAcc:mutable.Map[String,String]):Unit = {
+  def resolveContext(ldContextLoc: String, ldContextAcc: mutable.Map[String, String]): Unit = synchronized {
     if (ldContexts.contains(ldContextLoc)) {
       Console.println(s"LdContext already loaded: ${ldContextLoc}")
       ldContextAcc ++ ldContexts.get(ldContextLoc)
@@ -37,7 +37,7 @@ object LdContextResolver {
 
     if (result.getStatusLine.getStatusCode == 200) {
       val ldContextStr = EntityUtils.toString(result.getEntity, "UTF-8")
-      val ldContext = ParserUtil.parse(ldContextStr).asInstanceOf[Map[String,Any]]
+      val ldContext = ParserUtil.parse(ldContextStr).asInstanceOf[Map[String, Any]]
 
       ldContexts += (ldContextLoc -> ldContext)
 
@@ -48,8 +48,22 @@ object LdContextResolver {
         return
       }
 
-      if (firstLevel.isInstanceOf[Map[String,String]]) {
-        ldContextAcc ++ firstLevel.asInstanceOf[Map[String,String]]
+      Console.println(firstLevel.getClass.getName)
+
+      if (firstLevel.isInstanceOf[Map[String, String]]) {
+        ldContextAcc ++= firstLevel.asInstanceOf[Map[String, String]]
+      }
+      else if (firstLevel.isInstanceOf[List[Any]]) {
+        val list = firstLevel.asInstanceOf[List[Any]]
+
+        list.foreach(l => {
+          if (l.isInstanceOf[String]) {
+            resolveContext(l.asInstanceOf[String],ldContextAcc)
+          }
+          else if (l.isInstanceOf[Map[String,String]]) {
+            ldContextAcc ++= l.asInstanceOf[Map[String, String]]
+          }
+        })
       }
     }
     else {
@@ -57,4 +71,5 @@ object LdContextResolver {
       return
     }
   }
+
 }
