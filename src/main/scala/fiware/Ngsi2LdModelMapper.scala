@@ -2,6 +2,9 @@ package fiware
 
 import java.net.URLDecoder
 
+import rest.WrapperUtils
+import utils.LdContextResolver
+
 import scala.collection.mutable
 
 /**
@@ -16,7 +19,7 @@ import scala.collection.mutable
   *
   *
   */
-object Ngsi2LdModelMapper extends Mapper {
+object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
 
   def fromNgsi(in: Map[String, Any],ldContext: Map[String, String]) = {
     val out = mutable.Map[String, Any]()
@@ -33,20 +36,19 @@ object Ngsi2LdModelMapper extends Mapper {
     out.toMap[String, Any]
   }
 
-  def ldContext(entity: Map[String, Any]) = {
-    var ldContextMap = entity.getOrElse("@context",  Map[String, Any]())
-
-    // Temporal workaround
-    if (ldContextMap.isInstanceOf[String]) {
-      ldContextMap = Map[String,String]()
+  def calculateLdContext(entity: Map[String, Any]):Map[String,String] = {
+    if (!entity.contains("@context")) {
+      return Map[String,String]()
     }
 
-    val ldContext = ldContextMap.asInstanceOf[Map[String,Any]].getOrElse("value",Map[String,String]())
+    val ldContextValue = entity("@context").asInstanceOf[Map[String,Any]].getOrElse("value",None)
 
-    // TODO: Resolve the @context in case it is not inline
-    if (ldContext.isInstanceOf[Map[String,String]])
-      ldContext.asInstanceOf[Map[String,String]]
-    else Map[String,String]()
+    if (ldContextValue == None) {
+      Map[String,String]()
+    }
+    else {
+      resolveContext(ldContextValue)
+    }
   }
 
   private def ldReverseContext(ldContext:Map[String,String]): Map[String, String] = {

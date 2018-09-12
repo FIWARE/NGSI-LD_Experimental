@@ -2,6 +2,18 @@ package utils
 
 import json.JSONParser
 
+/**
+  *
+  * JSON Parser utilities
+  *
+  * Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  * Author: José M. Cantera
+  *
+  * LICENSE: MIT
+  *
+  *
+  */
 object ParserUtil {
   def parse(data:String) ={
     val parser = new JSONParser

@@ -1,5 +1,17 @@
 package main
 
+/**
+  *
+  * Configuration constants
+  *
+  * Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  * Author: José M. Cantera
+  *
+  * LICENSE: MIT
+  *
+  *
+  */
 trait Configuration {
   val Port = "NGSI-LD_Port"
   val NgsiLdApiPath = "NGSI_LD_Api_Path"
