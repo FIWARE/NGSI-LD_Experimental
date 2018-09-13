@@ -2,8 +2,8 @@ package fiware
 
 import java.net.URLDecoder
 
+import fiware.Ngsi2LdModelMapper.{format_uri, reversed}
 import rest.WrapperUtils
-import utils.LdContextResolver
 
 import scala.collection.mutable
 
@@ -20,6 +20,21 @@ import scala.collection.mutable
   *
   */
 object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
+
+  def fromNgsiKeyValues(in:Map[String,Any],ldContext: Map[String, String]) = {
+    val out = mutable.Map[String, Any]()
+
+    val revContext = ldReverseContext(ldContext)
+
+    in.keys.foreach(key => key match {
+      case "id" => out += (key -> format_uri(in(key).asInstanceOf[String],
+        in("type").asInstanceOf[String]))
+      case "type" => out += (key -> reversed(in(key).asInstanceOf[String], revContext))
+      case _ => out += (reversed(key,revContext) -> in(key))
+    })
+
+    out.toMap[String, Any]
+  }
 
   def fromNgsi(in: Map[String, Any],ldContext: Map[String, String]) = {
     val out = mutable.Map[String, Any]()
@@ -42,7 +57,12 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
       return Map[String,String]()
     }
 
-    val ldContextValue = entity("@context").asInstanceOf[Map[String,Any]].getOrElse("value",None)
+    // If keyValues Mode then @context contains directly the @context
+    val ldContextAttr = entity("@context")
+    var ldContextValue = ldContextAttr
+    if (ldContextAttr.isInstanceOf[Map[String,Any]]) {
+      ldContextValue = ldContextAttr.asInstanceOf[Map[String,Any]].getOrElse("value",None)
+    }
 
     if (ldContextValue == None) {
       Map[String,String]()

@@ -28,7 +28,7 @@ trait WrapperUtils {
 
 
   def toNgsiLd(params:Params, in: Map[String, Any], ldContext: Map[String, String]) = {
-    if (mode(params) == KeyValues) in
+    if (mode(params) == KeyValues) Ngsi2LdModelMapper.fromNgsiKeyValues(in, ldContext)
     else Ngsi2LdModelMapper.fromNgsi(in, ldContext)
   }
 
