@@ -21,50 +21,50 @@ object LdContextResolver {
   private val ldContexts = mutable.Map[String, Map[String, Any]]()
 
   def resolveContext(ldContextLoc: String, ldContextAcc: mutable.Map[String, String]): Unit = synchronized {
+    var ldContext:Map[String, Any] = Map[String,Any]()
+
     if (ldContexts.contains(ldContextLoc)) {
-      Console.println(s"LdContext already loaded: ${ldContextLoc}")
-      ldContextAcc ++ ldContexts.get(ldContextLoc)
+      Console.println(s"loading @context from cache: ${ldContextLoc}")
+      ldContext = ldContexts(ldContextLoc)
+    }
+    else {
+      Console.println(s"Resolving JSON-LD @context: ${ldContextLoc}")
+
+      val getRequest = new HttpGet(ldContextLoc)
+
+      // send the GET request
+      val httpClient = HttpClientBuilder.create().build()
+      val result = httpClient.execute(getRequest)
+
+      if (result.getStatusLine.getStatusCode == 200) {
+        val ldContextStr = EntityUtils.toString(result.getEntity, "UTF-8")
+        ldContext = ParserUtil.parse(ldContextStr).asInstanceOf[Map[String, Any]]
+
+        ldContexts += (ldContextLoc -> ldContext)
+      }
+    }
+
+    val firstLevel = ldContext.getOrElse("@context", None)
+
+    if (firstLevel == None) {
+      Console.println(s"It seems ${ldContextLoc} does not contain a valid JSON-LD @context")
       return
     }
 
-    Console.println(s"Resolving JSON-LD @context: ${ldContextLoc}")
+    if (firstLevel.isInstanceOf[Map[String, String]]) {
+      ldContextAcc ++= firstLevel.asInstanceOf[Map[String, String]]
+    }
+    else if (firstLevel.isInstanceOf[List[Any]]) {
+      val list = firstLevel.asInstanceOf[List[Any]]
 
-    val getRequest = new HttpGet(ldContextLoc)
-
-    // send the GET request
-    val httpClient = HttpClientBuilder.create().build()
-    val result = httpClient.execute(getRequest)
-
-    if (result.getStatusLine.getStatusCode == 200) {
-      val ldContextStr = EntityUtils.toString(result.getEntity, "UTF-8")
-      val ldContext = ParserUtil.parse(ldContextStr).asInstanceOf[Map[String, Any]]
-
-      ldContexts += (ldContextLoc -> ldContext)
-
-      val firstLevel = ldContext.getOrElse("@context", None)
-
-      if (firstLevel == None) {
-        Console.println(s"It seems ${ldContextLoc} does not contain a valid JSON-LD @context")
-        return
-      }
-
-      Console.println(firstLevel.getClass.getName)
-
-      if (firstLevel.isInstanceOf[Map[String, String]]) {
-        ldContextAcc ++= firstLevel.asInstanceOf[Map[String, String]]
-      }
-      else if (firstLevel.isInstanceOf[List[Any]]) {
-        val list = firstLevel.asInstanceOf[List[Any]]
-
-        list.foreach(l => {
-          if (l.isInstanceOf[String]) {
-            resolveContext(l.asInstanceOf[String],ldContextAcc)
-          }
-          else if (l.isInstanceOf[Map[String,String]]) {
-            ldContextAcc ++= l.asInstanceOf[Map[String, String]]
-          }
-        })
-      }
+      list.foreach(l => {
+        if (l.isInstanceOf[String]) {
+          resolveContext(l.asInstanceOf[String], ldContextAcc)
+        }
+        else if (l.isInstanceOf[Map[String, String]]) {
+          ldContextAcc ++= l.asInstanceOf[Map[String, String]]
+        }
+      })
     }
     else {
       Console.println(s"Cannot resolve @context: ${ldContextLoc}")
