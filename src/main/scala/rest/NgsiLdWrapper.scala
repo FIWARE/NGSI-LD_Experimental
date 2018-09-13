@@ -61,6 +61,9 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     val requestContentType = request.header("Content-Type")
     val requestAccept = request.header("Accept")
 
+    // By default MIME type application/json
+    contentType = JsonMimeType
+
     // Accept header has the priority
     if (!requestAccept.isEmpty) {
       val mimeTypes = parseAccept(requestAccept.get)
@@ -70,18 +73,10 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
       else if (mimeTypes.contains(JsonMimeType)) {
         contentType = JsonMimeType
       }
-      else {
-        // By default JSON MIME Type
-        contentType = JsonMimeType
-      }
     }
     else {
       if (!requestContentType.isEmpty) {
         contentType = requestContentType.get
-      }
-      else {
-        // By default JSON MIME Type
-        contentType = JsonMimeType
       }
     }
   }
