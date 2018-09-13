@@ -36,6 +36,7 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
     out.toMap[String, Any]
   }
 
+  /* Calculates the LD @context from the data stored by the NGSIv2 Entity */
   def calculateLdContext(entity: Map[String, Any]):Map[String,String] = {
     if (!entity.contains("@context")) {
       return Map[String,String]()

@@ -31,7 +31,7 @@ class Ngsi2LdTestSuite extends FunSuite {
     "typelessAttr" -> Map("value" -> "hello")
   )
 
-  val result = Ngsi2LdModelMapper.fromNgsi(testData,Ngsi2LdModelMapper.ldContext(testData))
+  val result = Ngsi2LdModelMapper.fromNgsi(testData,Ngsi2LdModelMapper.calculateLdContext(testData))
 
   def node(node:Any) = {
     node.asInstanceOf[Map[String,Any]]

@@ -57,6 +57,7 @@ trait WrapperUtils {
   }
 
 
+  /* Obtains the LD Context of an Entity encoded in NGSI-LD */
   def ldContext(data: Map[String, Any]): Map[String, String] = {
     val ldContext = data.getOrElse("@context", Map[String, String]())
 
