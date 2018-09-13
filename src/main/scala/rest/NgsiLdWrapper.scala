@@ -70,10 +70,18 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
       else if (mimeTypes.contains(JsonMimeType)) {
         contentType = JsonMimeType
       }
+      else {
+        // By default JSON MIME Type
+        contentType = JsonMimeType
+      }
     }
     else {
       if (!requestContentType.isEmpty) {
         contentType = requestContentType.get
+      }
+      else {
+        // By default JSON MIME Type
+        contentType = JsonMimeType
       }
     }
   }
@@ -165,7 +173,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
       case ValidInput() => {
         val entityData = ngsiData.asInstanceOf[Map[String, Any]]
 
-        var ldData = toNgsiLd(params,entityData, Ngsi2LdModelMapper.ldContext(entityData))
+        var ldData = toNgsiLd(params,entityData, Ngsi2LdModelMapper.calculateLdContext(entityData))
         // Then Entity data is properly updated with the new values, but not needed stuff is removed
         ldData -= ("id", "type")
 
@@ -226,7 +234,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
         for (item <- data) {
           // TODO: the future this should be more sophisticated such as resolving a remote @context
           // Or combine local defined terms with remotely defined terms
-          out += toNgsiLd(params,item, Ngsi2LdModelMapper.ldContext(item))
+          out += toNgsiLd(params,item, Ngsi2LdModelMapper.calculateLdContext(item))
         }
         Ok(serialize(out.toList), defaultContext)
       }
@@ -252,7 +260,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     result.code match {
       case 200 => {
         val ngsiData = result.data.asInstanceOf[Map[String, Any]]
-        val ldData = toNgsiLd(params,ngsiData, Ngsi2LdModelMapper.ldContext(ngsiData))
+        val ldData = toNgsiLd(params,ngsiData, Ngsi2LdModelMapper.calculateLdContext(ngsiData))
 
         Ok(serialize(ldData), defaultContext)
       }
