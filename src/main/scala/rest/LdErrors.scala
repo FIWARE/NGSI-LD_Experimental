@@ -1,5 +1,17 @@
 package rest
 
+/**
+  *
+  * It is in charge of generating NGSI-LD API Errors
+  *
+  * Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  * Author: José M. Cantera
+  *
+  * LICENSE: MIT
+  *
+  *
+  */
 object LdErrors {
   private val AlreadyExistsName = "AlreadyExists"
   private val NotFoundName = "NotFound"

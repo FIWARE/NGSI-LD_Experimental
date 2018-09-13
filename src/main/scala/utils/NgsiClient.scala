@@ -6,6 +6,18 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
 
+/**
+  *
+  * NGSIv2 client
+  *
+  * Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  * Author: José M. Cantera
+  *
+  * LICENSE: MIT
+  *
+  *
+  */
 object NgsiClient {
   private var currentEndpoint  = "http://localhost:1026"
   private val ngsiBase = "/v2"

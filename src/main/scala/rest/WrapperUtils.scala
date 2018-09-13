@@ -4,8 +4,22 @@ import fiware.Ngsi2LdModelMapper
 import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
 import org.scalatra.Params
-import utils.ParserUtil
+import utils.{LdContextResolver, ParserUtil}
 
+import scala.collection.mutable
+
+/**
+  *
+  * Utilities for the NGSI-LD Wrapper
+  *
+  * Coypright (c) 2018 FIWARE Foundation e.V.
+  *
+  * Author: José M. Cantera
+  *
+  * LICENSE: MIT
+  *
+  *
+  */
 trait WrapperUtils {
   def KeyValues = "keyValues"
   def DefaultContextLink = """<http://uri.etsi.org/ngsi-ld/context.jsonld>;
@@ -42,13 +56,36 @@ trait WrapperUtils {
     mimeTypes.map((t) => t.split(';')(0))
   }
 
+
+  /* Obtains the LD Context of an Entity encoded in NGSI-LD */
   def ldContext(data: Map[String, Any]): Map[String, String] = {
     val ldContext = data.getOrElse("@context", Map[String, String]())
 
-    // For the time being the LD @context is not resolved externally and only JSON objects are allowed
-    if (ldContext.isInstanceOf[Map[String, String]])
-      ldContext.asInstanceOf[Map[String, String]]
-    else Map[String, String]()
+    resolveContext(ldContext)
+  }
+
+  def resolveContext(ldContextValue:Any):Map[String,String] = {
+    val ldContextResolved = mutable.Map[String, String]()
+
+    if (ldContextValue.isInstanceOf[String]) {
+      LdContextResolver.resolveContext(ldContextValue.asInstanceOf[String], ldContextResolved)
+    }
+    else if (ldContextValue.isInstanceOf[List[Any]]) {
+      val ldContextLocs = ldContextValue.asInstanceOf[List[Any]]
+      ldContextLocs.foreach(l => {
+        if (l.isInstanceOf[String]) {
+          LdContextResolver.resolveContext(l.asInstanceOf[String], ldContextResolved)
+        }
+        else if (l.isInstanceOf[Map[String, String]]) {
+          ldContextResolved ++= l.asInstanceOf[Map[String, String]]
+        }
+      })
+    }
+    else if (ldContextValue.isInstanceOf[Map[String, String]]) {
+      ldContextResolved ++= ldContextValue.asInstanceOf[Map[String, String]]
+    }
+
+    ldContextResolved.toMap[String, String]
   }
 
   def partialAttrCheck(payloadData:Map[String,Any],ngsiData:Any,attribute:String):ValidationResult = {
