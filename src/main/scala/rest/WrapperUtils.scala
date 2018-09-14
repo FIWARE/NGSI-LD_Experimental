@@ -22,17 +22,19 @@ import scala.collection.mutable
   */
 trait WrapperUtils {
   def KeyValues = "keyValues"
-  def DefaultContextLink = """<http://uri.etsi.org/ngsi-ld/context.jsonld>;
+
+  def DefaultContextLink =
+    """<http://uri.etsi.org/ngsi-ld/context.jsonld>;
                              rel="http://www.w3.org/ns/json-ld#context";
                              type="application/ld+json";"""
 
 
-  def toNgsiLd(params:Params, in: Map[String, Any], ldContext: Map[String, String]) = {
+  def toNgsiLd(params: Params, in: Map[String, Any], ldContext: Map[String, String]) = {
     if (mode(params) == KeyValues) Ngsi2LdModelMapper.fromNgsiKeyValues(in, ldContext)
     else Ngsi2LdModelMapper.fromNgsi(in, ldContext)
   }
 
-  def mode(params:Params) = {
+  def mode(params: Params) = {
     var options = params.getOrElse("options", null)
     if (options != null)
       if (options.split(",").indexOf(KeyValues) != -1)
@@ -50,12 +52,11 @@ trait WrapperUtils {
 
   def defaultContext = Map("Link" -> DefaultContextLink)
 
-  def parseAccept(accept:String): Array[String] = {
+  def parseAccept(accept: String): Array[String] = {
     val mimeTypes = accept.split(',')
 
     mimeTypes.map((t) => t.split(';')(0))
   }
-
 
   /* Obtains the LD Context of an Entity encoded in NGSI-LD */
   def ldContext(data: Map[String, Any]): Map[String, String] = {
@@ -64,7 +65,7 @@ trait WrapperUtils {
     resolveContext(ldContext)
   }
 
-  def resolveContext(ldContextValue:Any):Map[String,String] = {
+  def resolveContext(ldContextValue: Any): Map[String, String] = {
     val ldContextResolved = mutable.Map[String, String]()
 
     if (ldContextValue.isInstanceOf[String]) {
@@ -88,7 +89,7 @@ trait WrapperUtils {
     ldContextResolved.toMap[String, String]
   }
 
-  def partialAttrCheck(payloadData:Map[String,Any],ngsiData:Any,attribute:String):ValidationResult = {
+  def partialAttrCheck(payloadData: Map[String, Any], ngsiData: Any, attribute: String): ValidationResult = {
     if (payloadData.isEmpty)
       EmptyPayload()
     else {
@@ -104,5 +105,40 @@ trait WrapperUtils {
           ValidInput()
       }
     }
+  }
+
+  def rewriteQueryString(params: Params, in: String): String = {
+    var out = in
+
+    val attrs = params.getOrElse("attrs", None)
+    if (attrs != None) {
+      // Hack to allow getting the @context
+      out += s"&attrs=${attrs},@context"
+    }
+
+    var geoRel = params.getOrElse("georel", None)
+    if (geoRel != None) {
+      geoRel = geoRel.asInstanceOf[String].replace("==",":")
+    }
+
+    val coords = params.getOrElse("coordinates", None)
+    val geometry = params.getOrElse("geometry", None)
+
+    if (coords != None && geometry != None) {
+      out += s"&geometry=point&georel=${geoRel}"
+
+      // Transformation to GeoJson object
+      val parsedCoordinates = ParserUtil.parse(coords.asInstanceOf[String])
+
+      // For the moment only GeoJSON objects of type "Point" are supported
+      val coordsArray = parsedCoordinates.asInstanceOf[List[Any]]
+      geometry match {
+        case "Point" => out += s"&coords=${coordsArray(1)},${coordsArray(0)}"
+        // TODO: Support other GeoJSON geometries
+        case _ => {  }
+      }
+    }
+
+    out
   }
 }

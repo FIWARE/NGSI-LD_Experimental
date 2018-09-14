@@ -215,11 +215,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
   get(s"${Base}/entities/") {
     var queryString = request.getQueryString
 
-    val attrs = params.getOrElse("attrs",null)
-    if (attrs != null) {
-      // Hack to allow getting the @context
-      queryString += s"&attrs=${attrs},@context"
-    }
+   queryString = rewriteQueryString(params,queryString)
 
     val result = NgsiClient.queryEntities(queryString, tenant())
     result.code match {
