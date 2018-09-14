@@ -24,7 +24,7 @@ trait WrapperUtils {
   def KeyValues = "keyValues"
 
   def DefaultContextLink =
-    """<http://uri.etsi.org/ngsi-ld/context.jsonld>;
+    """<https://fiware.github.io/NGSI-LD_Tests/ldContext/defaultContext.jsonld>;
                              rel="http://www.w3.org/ns/json-ld#context";
                              type="application/ld+json";"""
 
