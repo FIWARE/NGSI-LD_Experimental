@@ -1,5 +1,7 @@
 package rest
 
+import java.net.URLEncoder
+
 import fiware.Ngsi2LdModelMapper
 import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
@@ -7,6 +9,7 @@ import org.scalatra.Params
 import utils.{LdContextResolver, ParserUtil}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /**
   *
@@ -28,6 +31,9 @@ trait WrapperUtils {
                              rel="http://www.w3.org/ns/json-ld#context";
                              type="application/ld+json";"""
 
+  val linkUri = raw"<(.+)>".r
+
+  val relContext = """rel="(.+)"""".r
 
   def toNgsiLd(params: Params, in: Map[String, Any], ldContext: Map[String, String]) = {
     if (mode(params) == KeyValues) Ngsi2LdModelMapper.fromNgsiKeyValues(in, ldContext)
@@ -107,18 +113,48 @@ trait WrapperUtils {
     }
   }
 
-  def rewriteQueryString(params: Params, in: String): String = {
+  def rewriteQueryString(params: Params, in: String, ldContext: Map[String, String]): String = {
     var out = in
 
-    val attrs = params.getOrElse("attrs", None)
-    if (attrs != None) {
-      // Hack to allow getting the @context
-      out += s"&attrs=${attrs},@context"
-    }
+    // If there is no ldContext then no need to rewrite attributes or types
+    if (ldContext.size > 0) {
 
+      val originalAttrs = params.getOrElse("attrs", None)
+      if (originalAttrs != None) {
+        // Rewrite attributes as per the @context
+        val attrList = originalAttrs.asInstanceOf[String].split(",");
+
+        var finalAttrList = ListBuffer[String]()
+        attrList.foreach(attr => {
+          finalAttrList += URLEncoder.encode((ldContext.getOrElse(attr, attr)))
+        })
+
+        // Hack to allow getting the @context
+        finalAttrList += ("@context")
+        val newAttrs = finalAttrList.mkString(",")
+        val attrs = URLEncoder.encode(newAttrs)
+
+        out += s"&attrs=${attrs}"
+      }
+
+      val originalType = params.getOrElse("type", None)
+      if (originalType != None) {
+        val types = originalType.asInstanceOf[String].split(",")
+        var finalTypes = ListBuffer[String]()
+        types.foreach(aType => {
+          finalTypes += URLEncoder.encode((ldContext.getOrElse(aType, aType)))
+        })
+
+        val newTypes = finalTypes.mkString(",")
+        val typeStr = URLEncoder.encode(newTypes)
+
+        out += s"&type=${typeStr}"
+      }
+    }
+    
     var geoRel = params.getOrElse("georel", None)
     if (geoRel != None) {
-      geoRel = geoRel.asInstanceOf[String].replace("==",":")
+      geoRel = geoRel.asInstanceOf[String].replace("==", ":")
     }
 
     val coords = params.getOrElse("coordinates", None)
@@ -135,10 +171,42 @@ trait WrapperUtils {
       geometry match {
         case "Point" => out += s"&coords=${coordsArray(1)},${coordsArray(0)}"
         // TODO: Support other GeoJSON geometries
-        case _ => {  }
+        case _ => {}
       }
     }
 
     out
+  }
+
+  // Obtains the LD @context supplied in the request
+  def requestLdContext(linkHeader: String): Map[String, String] = {
+    val out = mutable.Map[String, String]()
+
+    if (linkHeader != null && linkHeader.trim.length > 0) {
+      val linkHeaderElements = linkHeader.split(",")
+
+      linkHeaderElements.foreach(link => {
+        val linkElements = link.split(";")
+        if (linkElements.size >= 3) {
+          linkElements(1).trim match {
+            case relContext(rel) => (rel) {
+              if (rel == "http://www.w3.org/ns/json-ld#context") {
+                val ldContextUri = linkElements(0).trim
+                ldContextUri match {
+                  case linkUri(uri) => (uri) {
+                    Console.println("@Context Request", uri)
+                    LdContextResolver.resolveContext(uri, out)
+                    0
+                  }
+                }
+              }
+              0
+            }
+          }
+        }
+      })
+    }
+
+    out.toMap[String, String]
   }
 }

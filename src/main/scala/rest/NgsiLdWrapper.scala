@@ -49,9 +49,9 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     if (!requestContentType.isEmpty && requestContentType.get != JsonMimeType && requestContentType.get != JsonLdMimeType) {
       halt(415)
     }
-    else  if (!requestAccept.isEmpty) {
+    else if (!requestAccept.isEmpty) {
       val mimeTypes = parseAccept(requestAccept.get)
-      if(!mimeTypes.contains("*/*") && !mimeTypes.contains(JsonMimeType) && ! mimeTypes.contains(JsonLdMimeType)) {
+      if (!mimeTypes.contains("*/*") && !mimeTypes.contains(JsonMimeType) && !mimeTypes.contains(JsonLdMimeType)) {
         halt(415)
       }
     }
@@ -118,7 +118,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
         case _ => InternalServerError()
       }
     } catch {
-      case _ :Throwable => BadRequest(LdErrors.BadRequestData())
+      case _: Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
@@ -159,25 +159,25 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     // First Entity Content is queried
     val ngsiData = NgsiClient.entityById(id, null, tenant()).data
 
-    val valResult = partialAttrCheck(attrData,ngsiData,attribute)
+    val valResult = partialAttrCheck(attrData, ngsiData, attribute)
 
     valResult match {
-      case EmptyPayload() =>  BadRequest(serialize(LdErrors.NotFound()))
+      case EmptyPayload() => BadRequest(serialize(LdErrors.NotFound()))
       case EntityNotFound() => NotFound(serialize(LdErrors.NotFound()))
       case AttributeNotFound() => NotFound(serialize(LdErrors.NotFound()))
       case ValidInput() => {
         val entityData = ngsiData.asInstanceOf[Map[String, Any]]
 
-        var ldData = toNgsiLd(params,entityData, Ngsi2LdModelMapper.calculateLdContext(entityData))
+        var ldData = toNgsiLd(params, entityData, Ngsi2LdModelMapper.calculateLdContext(entityData))
         // Then Entity data is properly updated with the new values, but not needed stuff is removed
         ldData -= ("id", "type")
 
         var affectedAttribute = ldData(attribute).asInstanceOf[Map[String, Any]]
         // TODO: check null values so that actually the data item is removed
         attrData.keys.foreach(key => {
-          affectedAttribute = affectedAttribute.updated(key,attrData(key))
+          affectedAttribute = affectedAttribute.updated(key, attrData(key))
         })
-        ldData = ldData.updated(attribute,affectedAttribute)
+        ldData = ldData.updated(attribute, affectedAttribute)
 
         val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(ldData, ldContext(ldData)), tenant())
 
@@ -215,7 +215,8 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
   get(s"${Base}/entities/") {
     var queryString = request.getQueryString
 
-   queryString = rewriteQueryString(params,queryString)
+    val reqLdContext = requestLdContext(request.headers.getOrElse("Link",null))
+    queryString = rewriteQueryString(params, queryString, reqLdContext)
 
     val result = NgsiClient.queryEntities(queryString, tenant())
     result.code match {
@@ -225,7 +226,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
         for (item <- data) {
           // TODO: the future this should be more sophisticated such as resolving a remote @context
           // Or combine local defined terms with remotely defined terms
-          out += toNgsiLd(params,item, Ngsi2LdModelMapper.calculateLdContext(item))
+          out += toNgsiLd(params, item, Ngsi2LdModelMapper.calculateLdContext(item))
         }
         Ok(serialize(out.toList), defaultContext)
       }
@@ -240,18 +241,15 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     val id = params("id")
     var queryString = request.getQueryString
 
-    val attrs = params.getOrElse("attrs",null)
-    if (attrs != null) {
-      // Hack to allow getting the @context
-      queryString += s"&attrs=${attrs},@context"
-    }
+    val reqLdContext = requestLdContext(request.headers.getOrElse("Link",null))
+    queryString = rewriteQueryString(params, queryString, reqLdContext)
 
     val result = NgsiClient.entityById(id, queryString, tenant())
 
     result.code match {
       case 200 => {
         val ngsiData = result.data.asInstanceOf[Map[String, Any]]
-        val ldData = toNgsiLd(params,ngsiData, Ngsi2LdModelMapper.calculateLdContext(ngsiData))
+        val ldData = toNgsiLd(params, ngsiData, Ngsi2LdModelMapper.calculateLdContext(ngsiData))
 
         Ok(serialize(ldData), defaultContext)
       }
