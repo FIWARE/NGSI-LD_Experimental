@@ -107,6 +107,8 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     try {
       val ngsiData = Ld2NgsiModelMapper.toNgsi(data, ldContext(data))
 
+      Console.println(ngsiData)
+
       val result = NgsiClient.createEntity(ngsiData, tenant())
 
       result.getStatusLine.getStatusCode match {
@@ -118,7 +120,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
         case _ => InternalServerError()
       }
     } catch {
-      case _: Throwable => BadRequest(LdErrors.BadRequestData())
+        case a:Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 

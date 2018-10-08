@@ -51,10 +51,7 @@ object LdContextResolver {
       return
     }
 
-    if (firstLevel.isInstanceOf[Map[String, String]]) {
-      ldContextAcc ++= firstLevel.asInstanceOf[Map[String, String]]
-    }
-    else if (firstLevel.isInstanceOf[List[Any]]) {
+   if (firstLevel.isInstanceOf[List[Any]]) {
       val list = firstLevel.asInstanceOf[List[Any]]
 
       list.foreach(l => {
@@ -65,8 +62,27 @@ object LdContextResolver {
           ldContextAcc ++= l.asInstanceOf[Map[String, String]]
         }
       })
-    }
-    else {
+   }
+   else if (firstLevel.isInstanceOf[Map[String,Any]]) {
+     val contextKeys = firstLevel.asInstanceOf[Map[String,Any]]
+     contextKeys.keySet.foreach(contextKey => {
+       val contextValue = contextKeys(contextKey)
+
+       if (contextValue.isInstanceOf[String]) {
+         ldContextAcc += (contextKey -> contextValue.asInstanceOf[String])
+       }
+       // Supporting { "@type": "http://example.org/MyType", "@id": "http://example.org/id234" }
+       else if (contextValue.isInstanceOf[Map[String,String]]) {
+         val contextValueMap = contextValue.asInstanceOf[Map[String,String]]
+         ldContextAcc += (contextKey -> contextValueMap("@id"))
+       }
+       else {
+         Console.println(s"Cannot resolve @context: ${ldContextLoc}")
+         return
+       }
+     })
+   }
+   else {
       Console.println(s"Cannot resolve @context: ${ldContextLoc}")
       return
     }

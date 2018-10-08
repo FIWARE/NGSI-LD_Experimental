@@ -68,12 +68,13 @@ object Ld2NgsiModelMapper extends Mapper {
         nodeType match {
           case "Property" => {
             // It is needed to check the Content of the value
-            val value = auxIn.getOrElse("value",null)
+            val value = auxIn.getOrElse("value", null)
+
             if (value != null && value.isInstanceOf[Map[String, Any]]) {
               // To deal with values that have a type
               val valueMap = value.asInstanceOf[Map[String, Any]]
-              var valType = valueMap.getOrElse("type", null)
-              val valType2 = valueMap.getOrElse("@type", null)
+              var valType = valueMap.getOrElse("type", null).asInstanceOf[String]
+              val valType2 = valueMap.getOrElse("@type", null).asInstanceOf[String]
               val valValue = valueMap.getOrElse("@value", null)
 
               if (valType == null) {
@@ -86,7 +87,9 @@ object Ld2NgsiModelMapper extends Mapper {
                 attrMap += ("value" -> valValue)
               }
             }
-            else attrMap += ("value" -> value)
+            else {
+              attrMap += ("value" -> value)
+            }
           }
           case "Relationship" => {
             val urnObject = auxIn("object")
