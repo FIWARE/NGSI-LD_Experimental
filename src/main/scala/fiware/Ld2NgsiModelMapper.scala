@@ -67,7 +67,26 @@ object Ld2NgsiModelMapper extends Mapper {
 
         nodeType match {
           case "Property" => {
-            attrMap += ("value" -> auxIn.getOrElse("value",null))
+            // It is needed to check the Content of the value
+            val value = auxIn.getOrElse("value",null)
+            if (value != null && value.isInstanceOf[Map[String, Any]]) {
+              // To deal with values that have a type
+              val valueMap = value.asInstanceOf[Map[String, Any]]
+              var valType = valueMap.getOrElse("type", null)
+              val valType2 = valueMap.getOrElse("@type", null)
+              val valValue = valueMap.getOrElse("@value", null)
+
+              if (valType == null) {
+                valType = valType2
+              }
+              if (valValue != null) {
+                if (valType != null) {
+                  attrMap += ("type" -> valType)
+                }
+                attrMap += ("value" -> valValue)
+              }
+            }
+            else attrMap += ("value" -> value)
           }
           case "Relationship" => {
             val urnObject = auxIn("object")
@@ -81,7 +100,6 @@ object Ld2NgsiModelMapper extends Mapper {
           case "GeoProperty" => {
             attrMap += ("type" -> "geo:json", "value" -> auxIn("value"))
           }
-          case "TemporalProperty" => attrMap += ("type" -> "DateTime","value" -> auxIn("value"))
           case _ => throw new Exception("Node type not provided")
         }
       }
