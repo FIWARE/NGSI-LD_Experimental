@@ -32,7 +32,7 @@ class Ld2NgsiTestSuite extends FunSuite {
     "providedBy" -> Map("type" -> "Relationship", "object" -> urn("A99","Agent"))),
   "parkedIn" -> Map("type" -> "Relationship", "object" -> urn("P99","Parking"),
     "providedBy" -> Map("type" -> "Relationship","object" -> urn("A99","Agent")),
-    "validUntil" -> Map("type" -> "TemporalProperty","value" -> "2018-04-27T19:00:00")),
+    "validUntil" -> Map("type" -> "Property","value" -> Map("@type" -> "DateTime", "@value" -> "2018-04-27T19:00:00"))),
   "location" -> Map("type" -> "GeoProperty", "value" -> Map("type" -> "Point", "coordinates" -> List(-4.0,41.0)))
   )
 
@@ -113,7 +113,7 @@ class Ld2NgsiTestSuite extends FunSuite {
     assert(metadata(result,"parkedIn","validUntil")._1 == "2018-04-27T19:00:00")
   }
 
-  test("Temporal property should be mapped to DateTime") {
+  test("DateTime Property should be mapped to NGSIv2 DateTime") {
     assert(metadata(result,"parkedIn","validUntil")._2 == "DateTime")
   }
 

@@ -21,7 +21,7 @@ import scala.collection.mutable
   */
 object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
 
-  def fromNgsiKeyValues(in:Map[String,Any],ldContext: Map[String, String]) = {
+  def fromNgsiKeyValues(in: Map[String, Any], ldContext: Map[String, String]) = {
     val out = mutable.Map[String, Any]()
 
     val revContext = ldReverseContext(ldContext)
@@ -30,13 +30,13 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
       case "id" => out += (key -> format_uri(in(key).asInstanceOf[String],
         in("type").asInstanceOf[String]))
       case "type" => out += (key -> reversed(in(key).asInstanceOf[String], revContext))
-      case _ => out += (reversed(key,revContext) -> in(key))
+      case _ => out += (reversed(key, revContext) -> in(key))
     })
 
     out.toMap[String, Any]
   }
 
-  def fromNgsi(in: Map[String, Any],ldContext: Map[String, String]) = {
+  def fromNgsi(in: Map[String, Any], ldContext: Map[String, String]) = {
     val out = mutable.Map[String, Any]()
 
     val revContext = ldReverseContext(ldContext)
@@ -44,7 +44,7 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
     in.keys.foreach(key => key match {
       case "id" => out += (key -> format_uri(in(key).asInstanceOf[String],
         in("type").asInstanceOf[String]))
-      case "type" => out += (key -> reversed(in(key).asInstanceOf[String],revContext))
+      case "type" => out += (key -> reversed(in(key).asInstanceOf[String], revContext))
       case _ => match_key(key, in, out, revContext)
     })
 
@@ -52,27 +52,27 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
   }
 
   /* Calculates the LD @context from the data stored by the NGSIv2 Entity */
-  def calculateLdContext(entity: Map[String, Any]):Map[String,String] = {
+  def calculateLdContext(entity: Map[String, Any]): Map[String, String] = {
     if (!entity.contains("@context")) {
-      return Map[String,String]()
+      return Map[String, String]()
     }
 
     // If keyValues Mode then @context contains directly the @context
     val ldContextAttr = entity("@context")
     var ldContextValue = ldContextAttr
-    if (ldContextAttr.isInstanceOf[Map[String,Any]]) {
-      ldContextValue = ldContextAttr.asInstanceOf[Map[String,Any]].getOrElse("value",None)
+    if (ldContextAttr.isInstanceOf[Map[String, Any]]) {
+      ldContextValue = ldContextAttr.asInstanceOf[Map[String, Any]].getOrElse("value", None)
     }
 
     if (ldContextValue == None) {
-      Map[String,String]()
+      Map[String, String]()
     }
     else {
       resolveContext(ldContextValue)
     }
   }
 
-  private def ldReverseContext(ldContext:Map[String,String]): Map[String, String] = {
+  private def ldReverseContext(ldContext: Map[String, String]): Map[String, String] = {
     val reverseContext = mutable.Map[String, String]()
 
     ldContext.keys.foreach(key => {
@@ -97,18 +97,18 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
 
       case AnyProp(prop) => {
         val nodeType = ((p: String) => {
-          var out: (String, String, String) = null
+          var out: (String, String, String, String) = null
 
           p match {
             case ReferenceAttr(relName) => out = rel_member(p)
-            case _ => out = (reversed(p, ldReversedContext), "Property", "value")
+            case _ => out = (reversed(p, ldReversedContext), "Property", "value", "")
           }
           val declType = auxIn.getOrElse("type", "Property")
           declType match {
             case "Relationship" => out = rel_member(reversed(p, ldReversedContext))
             case "Reference" => out = rel_member(reversed(p, ldReversedContext))
-            case "geo:json" => out = (reversed(p, ldReversedContext), "GeoProperty", "value")
-            case "DateTime" => out = (reversed(p, ldReversedContext), "TemporalProperty", "value")
+            case "geo:json" => out = (reversed(p, ldReversedContext), "GeoProperty", "value", "")
+            case "DateTime" => out = (reversed(p, ldReversedContext), "Property", "value", "DateTime")
             case _ => Nil
           }
           out
@@ -117,7 +117,8 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
         val propMap = mutable.Map[String, Any]("type" -> nodeType._2)
 
         auxIn.keys.foreach(key => key match {
-          case "value" => propMap += (nodeType._3 -> format_value(nodeType._2, auxIn("value")))
+          case "value" => propMap += (nodeType._3 -> format_value(nodeType._2, auxIn("value"),
+                                                                          null, nodeType._4))
           case "metadata" => {
             val auxMeta = auxIn("metadata").asInstanceOf[Map[String, Any]]
             auxMeta.keys.foreach(metaKey => {
@@ -149,14 +150,18 @@ object Ngsi2LdModelMapper extends Mapper with WrapperUtils {
   }
 
   private def rel_member(attrName: String) = {
-    (attrName, "Relationship", "object")
+    (attrName, "Relationship", "object", "")
   }
 
-  private def format_value(nodeType: String, value: Any, entityType: String = null) = {
+  private def format_value(nodeType: String, value: Any, entityType: String = null, valueType: String) = {
     var out: Any = value
 
     if (nodeType == "Relationship") {
       out = format_uri(value.asInstanceOf[String], entityType)
+    }
+
+    if (valueType.length > 0) {
+      out = Map("@value" -> value, "@type" -> valueType)
     }
 
     out

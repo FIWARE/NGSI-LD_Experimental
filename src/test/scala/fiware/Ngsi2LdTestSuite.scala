@@ -91,8 +91,10 @@ class Ngsi2LdTestSuite extends FunSuite {
     assert(node(node(result("location"))("value"))("coordinates") == List(-4,55))
   }
 
-  test("Properties of type DateTime should be converted to TemporalProperty") {
-    assert(node(result("boughtAt"))("type") == "TemporalProperty")
+  test("Properties of type DateTime should be converted to a JSON-LD value Map") {
+    assert(node(result("boughtAt"))("type") == "Property")
+    assert(node(node(result("boughtAt"))("value"))("@type") == "DateTime")
+    assert(node(node(result("boughtAt"))("value"))("@value") == "2018-02-02T12:00:00")
   }
 
   test("Typeless attributes should be converted to Property") {

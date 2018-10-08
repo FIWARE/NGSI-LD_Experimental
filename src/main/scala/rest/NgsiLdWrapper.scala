@@ -118,7 +118,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
         case _ => InternalServerError()
       }
     } catch {
-      case _: Throwable => BadRequest(LdErrors.BadRequestData())
+        case a:Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
