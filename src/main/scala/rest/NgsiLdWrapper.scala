@@ -218,6 +218,8 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     val reqLdContext = requestLdContext(request.headers.getOrElse("Link",null))
     queryString = rewriteQueryString(params, queryString, reqLdContext)
 
+    Console.println(queryString)
+
     val result = NgsiClient.queryEntities(queryString, tenant())
     result.code match {
       case 200 => {

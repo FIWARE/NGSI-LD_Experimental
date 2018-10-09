@@ -1,12 +1,12 @@
 package rest
 
-import java.net.URLEncoder
+import java.net.{URLDecoder, URLEncoder}
 
 import fiware.Ngsi2LdModelMapper
 import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
 import org.scalatra.Params
-import utils.{LdContextResolver, ParserUtil}
+import utils.{ExpressionFilterParser, LdContextResolver, ParserUtil}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -113,6 +113,18 @@ trait WrapperUtils {
     }
   }
 
+  def rewriteFilter(qFilter:String, ldContext: Map[String, String]):String = {
+    val qFilterDec = URLDecoder.decode(qFilter)
+
+    val parser = new ExpressionFilterParser(ldContext)
+
+    parser.parse(parser.fullExpr, qFilterDec) match {
+      case parser.Success(matched,_) => matched.asInstanceOf[String]
+      case parser.Failure(msg,_) => throw new Exception(s"Unexpected failure: ${msg}")
+      case parser.Error(msg,_) => throw new Exception(s"Unexpected error: ${msg}")
+    }
+  }
+
   def rewriteQueryString(params: Params, in: String, ldContext: Map[String, String]): String = {
     var out = in
 
@@ -149,6 +161,14 @@ trait WrapperUtils {
         val typeStr = URLEncoder.encode(newTypes)
 
         out += s"&type=${typeStr}"
+      }
+
+      val originalQ = params.getOrElse("q", None)
+
+      if(originalQ != None) {
+        val newQ = rewriteFilter(originalQ.asInstanceOf[String],ldContext)
+
+        out += s"&q=${URLEncoder.encode(newQ)}"
       }
     }
     
