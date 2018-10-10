@@ -3,6 +3,7 @@ package rest
 import java.net.{URLDecoder, URLEncoder}
 
 import fiware.Ngsi2LdModelMapper
+import javax.servlet.http.HttpServletRequest
 import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
 import org.scalatra.Params
@@ -25,6 +26,9 @@ import scala.collection.mutable.ListBuffer
   */
 trait WrapperUtils {
   def KeyValues = "keyValues"
+
+  def JsonMimeType = "application/json"
+  def JsonLdMimeType = "application/ld+json"
 
   def DefaultContextLink =
     """<https://fiware.github.io/NGSI-LD_Tests/ldContext/defaultContext.jsonld>;
@@ -228,5 +232,25 @@ trait WrapperUtils {
     }
 
     out.toMap[String, String]
+  }
+
+
+  // If @context within the payload and MIME type is JSON then payload is not correct
+  def validateInputPayload(contentType:Option[String], payload:Map[String,Any]) = {
+    var out = true
+
+    if (!contentType.isEmpty && contentType.get == JsonMimeType) {
+      if (!payload.get("@context").isEmpty) {
+        out = false
+      }
+    }
+
+    if (!contentType.isEmpty && contentType.get == JsonLdMimeType) {
+      if (payload.get("@context").isEmpty) {
+        out = false
+      }
+    }
+
+    out
   }
 }

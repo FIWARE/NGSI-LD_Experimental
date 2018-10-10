@@ -19,4 +19,6 @@ trait Configuration {
   val DefaultNgsiEndpoint = "http://localhost:1026"
   val DefaultPort = "1030"
   val DefaultNgsiLdApiPath = "/ngsi-ld/v1"
+
+  val LinkRel = "http://www.w3.org/ns/json-ld#context"
 }

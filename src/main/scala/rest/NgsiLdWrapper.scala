@@ -26,9 +26,6 @@ import scala.collection.mutable
 class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils {
   private val Base = System.getenv.getOrDefault(NgsiLdApiPath, DefaultNgsiLdApiPath)
 
-  private val JsonMimeType = "application/json"
-  private val JsonLdMimeType = "application/ld+json"
-
   private val Version = "0.1"
 
   override def init(servletConfig: ServletConfig) = {
@@ -45,9 +42,15 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
   before() {
     val requestContentType = request.header("Content-Type")
     val requestAccept = request.header("Accept")
+    val linkHeader = request.header("Link")
 
     if (!requestContentType.isEmpty && requestContentType.get != JsonMimeType && requestContentType.get != JsonLdMimeType) {
       halt(415)
+    }
+    // JSON-LD @context header not allowed for JSON-LD content
+    else if (!requestContentType.isEmpty && requestContentType.get == JsonLdMimeType && !linkHeader.isEmpty
+      && linkHeader.get.indexOf(LinkRel) != -1) {
+      halt(400)
     }
     else if (!requestAccept.isEmpty) {
       val mimeTypes = parseAccept(requestAccept.get)
@@ -102,9 +105,13 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
   }
 
   post(s"${Base}/entities/") {
-    val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
-
     try {
+      val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
+
+      if (!validateInputPayload(request.header("Content-Type"),data)) {
+        throw new Exception
+      }
+
       val ngsiData = Ld2NgsiModelMapper.toNgsi(data, ldContext(data))
 
       val result = NgsiClient.createEntity(ngsiData, tenant())
@@ -118,76 +125,104 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
         case _ => InternalServerError()
       }
     } catch {
-        case a:Throwable => BadRequest(LdErrors.BadRequestData())
+      case a: Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
   post(s"${Base}/entities/:id/attrs/") {
     val id = params("id")
-    val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
+    try {
+      val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
 
-    val result = NgsiClient.appendAttributes(id, Ld2NgsiModelMapper.toNgsi(data, ldContext(data)), tenant())
+      if (!validateInputPayload(request.header("Content-Type"), data)) {
+        throw new Exception
+      }
 
-    result.getStatusLine.getStatusCode match {
-      case 204 => NoContent()
-      case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
-      case 404 => NotFound(serialize(LdErrors.NotFound()))
-      case _ => InternalServerError()
+      val result = NgsiClient.appendAttributes(id, Ld2NgsiModelMapper.toNgsi(data, ldContext(data)), tenant())
+
+      result.getStatusLine.getStatusCode match {
+        case 204 => NoContent()
+        case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+        case 404 => NotFound(serialize(LdErrors.NotFound()))
+        case _ => InternalServerError()
+      }
+    }
+    catch {
+      case a: Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
   patch(s"${Base}/entities/:id/attrs/") {
     val id = params("id")
-    val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
+    try {
+      val data = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
 
-    val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(data, ldContext(data)), tenant())
+      if (!validateInputPayload(request.header("Content-Type"),data)) {
+        throw new Exception
+      }
 
-    result.getStatusLine.getStatusCode match {
-      case 204 => NoContent()
-      case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
-      case 404 => NotFound(serialize(LdErrors.NotFound()))
-      case _ => InternalServerError()
+      val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(data, ldContext(data)), tenant())
+
+      result.getStatusLine.getStatusCode match {
+        case 204 => NoContent()
+        case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+        case 404 => NotFound(serialize(LdErrors.NotFound()))
+        case _ => InternalServerError()
+      }
+    }
+    catch {
+      case a: Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
   patch(s"${Base}/entities/:id/attrs/:attrId") {
     val id = params("id")
     val attribute = params("attrId")
-    // Attribute Data
-    val attrData = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
 
-    // First Entity Content is queried
-    val ngsiData = NgsiClient.entityById(id, null, tenant()).data
+    try {
+      // Attribute Data
+      val attrData = ParserUtil.parse(request.body).asInstanceOf[Map[String, Any]]
 
-    val valResult = partialAttrCheck(attrData, ngsiData, attribute)
+      if (!validateInputPayload(request.header("Content-Type"),attrData)) {
+        throw new Exception
+      }
 
-    valResult match {
-      case EmptyPayload() => BadRequest(serialize(LdErrors.NotFound()))
-      case EntityNotFound() => NotFound(serialize(LdErrors.NotFound()))
-      case AttributeNotFound() => NotFound(serialize(LdErrors.NotFound()))
-      case ValidInput() => {
-        val entityData = ngsiData.asInstanceOf[Map[String, Any]]
+      // First Entity Content is queried
+      val ngsiData = NgsiClient.entityById(id, null, tenant()).data
 
-        var ldData = toNgsiLd(params, entityData, Ngsi2LdModelMapper.calculateLdContext(entityData))
-        // Then Entity data is properly updated with the new values, but not needed stuff is removed
-        ldData -= ("id", "type")
+      val valResult = partialAttrCheck(attrData, ngsiData, attribute)
 
-        var affectedAttribute = ldData(attribute).asInstanceOf[Map[String, Any]]
-        // TODO: check null values so that actually the data item is removed
-        attrData.keys.foreach(key => {
-          affectedAttribute = affectedAttribute.updated(key, attrData(key))
-        })
-        ldData = ldData.updated(attribute, affectedAttribute)
+      valResult match {
+        case EmptyPayload() => BadRequest(serialize(LdErrors.NotFound()))
+        case EntityNotFound() => NotFound(serialize(LdErrors.NotFound()))
+        case AttributeNotFound() => NotFound(serialize(LdErrors.NotFound()))
+        case ValidInput() => {
+          val entityData = ngsiData.asInstanceOf[Map[String, Any]]
 
-        val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(ldData, ldContext(ldData)), tenant())
+          var ldData = toNgsiLd(params, entityData, Ngsi2LdModelMapper.calculateLdContext(entityData))
+          // Then Entity data is properly updated with the new values, but not needed stuff is removed
+          ldData -= ("id", "type")
 
-        result.getStatusLine.getStatusCode match {
-          case 204 => NoContent()
-          case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
-          case 404 => NotFound(serialize(LdErrors.NotFound()))
-          case _ => InternalServerError()
+          var affectedAttribute = ldData(attribute).asInstanceOf[Map[String, Any]]
+          // TODO: check null values so that actually the data item is removed
+          attrData.keys.foreach(key => {
+            affectedAttribute = affectedAttribute.updated(key, attrData(key))
+          })
+          ldData = ldData.updated(attribute, affectedAttribute)
+
+          val result = NgsiClient.updateEntity(id, Ld2NgsiModelMapper.toNgsi(ldData, ldContext(ldData)), tenant())
+
+          result.getStatusLine.getStatusCode match {
+            case 204 => NoContent()
+            case 400 => BadRequest(serialize(LdErrors.BadRequestData(errorDescription(result.getEntity))))
+            case 404 => NotFound(serialize(LdErrors.NotFound()))
+            case _ => InternalServerError()
+          }
         }
       }
+    }
+    catch {
+      case a: Throwable => BadRequest(LdErrors.BadRequestData())
     }
   }
 
@@ -215,7 +250,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
   get(s"${Base}/entities/") {
     var queryString = request.getQueryString
 
-    val reqLdContext = requestLdContext(request.headers.getOrElse("Link",null))
+    val reqLdContext = requestLdContext(request.headers.getOrElse("Link", null))
     queryString = rewriteQueryString(params, queryString, reqLdContext)
 
     Console.println(queryString)
@@ -243,7 +278,7 @@ class NgsiLdWrapper extends ScalatraServlet with Configuration with WrapperUtils
     val id = params("id")
     var queryString = request.getQueryString
 
-    val reqLdContext = requestLdContext(request.headers.getOrElse("Link",null))
+    val reqLdContext = requestLdContext(request.headers.getOrElse("Link", null))
     queryString = rewriteQueryString(params, queryString, reqLdContext)
 
     val result = NgsiClient.entityById(id, queryString, tenant())
