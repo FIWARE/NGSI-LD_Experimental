@@ -15,6 +15,8 @@ This wrapper works on top of the [FIWARE Context Broker](https://github.com/fiwa
 
 An example illustrating the usage of NGSI-LD can be found [here](doc/example.md). 
 
+If you are looking for an Orion-based native implementation of NGSI-LD please have a look at [Orion-LD](https://github.com/fiware/context.Orion). 
+
 ## How to build
 
 ### Prerequisites
