@@ -2,7 +2,7 @@
 
 [![](https://nexus.lab.fiware.org/repository/raw/public/badges/chapters/core.svg)](https://www.fiware.org/developers/catalogue/)
 ![](https://nexus.lab.fiware.org/static/badges/statuses/deprecated.svg)
-[![MIT license][license-image]][license-url]
+[![License: MIT](https://img.shields.io/github/license/FIWARE/NGSI-LD_Experimental.svg)](https://opensource.org/licenses/MIT)
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/ngsi-ld_wrapper.svg)](https://hub.docker.com/r/fiware/ngsi-ld_wrapper/)
 [![NGSI-LD badge](https://img.shields.io/badge/NGSI-LD-red.svg)](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf)
 
@@ -16,8 +16,8 @@
 >     Broker which can also be used in federated environments
 > -   The [Stellio Context Broker](https://github.com/stellio-hub/stellio-context-broker) Generic Enabler is another
 >     alternative NGSI-LD Broker
-    
-More information can be found within the [FIWARE Catalogue](https://github.com/FIWARE/catalogue#core-context-management)
+>    
+> More information can be found within the [FIWARE Catalogue](https://github.com/FIWARE/catalogue#core-context-management)
 
 The purpose of this project was created to study different implementation options of [NGSI-LD](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf). 
 
@@ -87,7 +87,4 @@ https://github.com/fiware/dataModels
 https://github.com/fiware/context.Orion
 
 https://github.com/fiware/NGSI-LD_Tests
-
-[license-image]: https://opensource.org/licenses/MIT
-[license-url]: LICENSE
 
