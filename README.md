@@ -19,7 +19,7 @@
 >    
 > More information can be found within the [FIWARE Catalogue](https://github.com/FIWARE/catalogue#core-context-management)
 
-The purpose of this project was created to study different implementation options of [NGSI-LD](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf). 
+The purpose of this project was to study different implementation options of [NGSI-LD](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf). 
 
 The first one was based on a wrapper (incarnated by a proxy) on top of the [FIWARE Context Broker](https://github.com/fiware/context.Orion). Leveraging on [FIWARE NGSI](http://fiware.github.io/specifications/ngsiv2/latest/), NGSI-LD is a Group Specification developed by [ETSI ISG CIM](https://portal.etsi.org/tb.aspx?tbid=854&SubTB=854), intended to define an API to provide, consume and subscribe to context information in multiple scenarios and involving multiple stakeholders. It enables close to real-time access to information coming from many different sources (not only IoT).
 
