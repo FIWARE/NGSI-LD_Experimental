@@ -1,21 +1,31 @@
 # NGSI-LD Experimental
 
 [![](https://nexus.lab.fiware.org/repository/raw/public/badges/chapters/core.svg)](https://www.fiware.org/developers/catalogue/)
+![](https://nexus.lab.fiware.org/static/badges/statuses/deprecated.svg)
 [![MIT license][license-image]][license-url]
 [![Docker badge](https://img.shields.io/docker/pulls/fiware/ngsi-ld_wrapper.svg)](https://hub.docker.com/r/fiware/ngsi-ld_wrapper/)
 [![NGSI-LD badge](https://img.shields.io/badge/NGSI-LD-red.svg)](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf)
-<br/>
-[![Build badge](https://img.shields.io/travis/FIWARE/NGSI-LD_Experimental.svg?branch=master "Travis build status")](https://travis-ci.org/FIWARE/NGSI-LD_Experimental/?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/Fiware/NGSI-LD_Experimental/badge.svg?branch=master)](https://coveralls.io/github/Fiware/NGSI-LD_Experimental?branch=master)
 
+> This repository is now archived. Since this experiment, a number of full open-source NGSI-LD context brokers have since been 
+> created and they already support the **updated** 1.3.1 ETSI NGSI-LD API to various degrees:
+> 
+> -   The [Orion-LD Context Broker](https://github.com/FIWARE/context.Orion-LD) Generic Enabler is a NGSI-LD Broker, which
+>     supports the NGSI-LD and the NGSIv2 APIs. Currently in alpha version, plan is to merge it with the main branch of
+>     Orion.
+> -   The [Scorpio Broker](https://github.com/ScorpioBroker/ScorpioBroker) Generic Enabler is an alternative NGSI-LD
+>     Broker which can also be used in federated environments
+> -   The [Stellio Context Broker](https://github.com/stellio-hub/stellio-context-broker) Generic Enabler is another
+>     alternative NGSI-LD Broker
+    
+More information can be found within the [FIWARE Catalogue](https://github.com/FIWARE/catalogue#core-context-management)
 
-The purpose of this project is to study different implementation options of [NGSI-LD](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf). 
+The purpose of this project was created to study different implementation options of [NGSI-LD](https://www.etsi.org/deliver/etsi_gs/CIM/001_099/009/01.01.01_60/gs_CIM009v010101p.pdf). 
 
-The first one is based on a wrapper (incarnated by a proxy) on top of the [FIWARE Context Broker](https://github.com/fiware/context.Orion). Leveraging on [FIWARE NGSI](http://fiware.github.io/specifications/ngsiv2/latest/), NGSI-LD is a Group Specification developed by [ETSI ISG CIM](https://portal.etsi.org/tb.aspx?tbid=854&SubTB=854), intended to define an API to provide, consume and subscribe to context information in multiple scenarios and involving multiple stakeholders. It enables close to real-time access to information coming from many different sources (not only IoT).
+The first one was based on a wrapper (incarnated by a proxy) on top of the [FIWARE Context Broker](https://github.com/fiware/context.Orion). Leveraging on [FIWARE NGSI](http://fiware.github.io/specifications/ngsiv2/latest/), NGSI-LD is a Group Specification developed by [ETSI ISG CIM](https://portal.etsi.org/tb.aspx?tbid=854&SubTB=854), intended to define an API to provide, consume and subscribe to context information in multiple scenarios and involving multiple stakeholders. It enables close to real-time access to information coming from many different sources (not only IoT).
 
-The [OMA NGSI-9/10 information model](https://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/NGSI-9/NGSI-10_information_model), the root basis of FIWARE NGSI, is currently being evolved by ETSI CIM to better support linked data (entity's relationships), [property graphs](https://neo4j.com/lp/book-graph-databases/) and semantics (exploiting the capabilities offered by [JSON-LD](https://json-ld.org/primer/latest/)).  The resulting specification has been named **NGSI-LD**. It is noteworthy that the [NGSI-LD information model](doc/NGSI-LD_Information_Model.md) is a generalization of the OMA NGSI-9/10 information model. As a result, it is expected a good level of compatibility and a clear migration path between both information models.  
+The [OMA NGSI-9/10 information model](https://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/NGSI-9/NGSI-10_information_model), the root basis of FIWARE NGSI, has been evolved by ETSI CIM to better support linked data (entity's relationships), [property graphs](https://neo4j.com/lp/book-graph-databases/) and semantics (exploiting the capabilities offered by [JSON-LD](https://json-ld.org/primer/latest/)).  The resulting specification has been named **NGSI-LD**. It is noteworthy that the [NGSI-LD information model](doc/NGSI-LD_Information_Model.md) is a generalization of the OMA NGSI-9/10 information model. As a result, a good level of compatibility and a clear migration path between both information models was been maintained.
 
-The wrapper implementation works on top of the [FIWARE Context Broker](https://github.com/fiware/context.Orion) and basically adapts between NGSIv2 (JSON) representations and the **NGSI-LD** (JSON-LD) representations.
+The wrapper implementation worked on top of the [FIWARE Context Broker](https://github.com/fiware/context.Orion) and basically adapted between NGSIv2 (JSON) representations and the **NGSI-LD** (JSON-LD) representations.
 
 An example illustrating the usage of NGSI-LD can be found [here](doc/example.md).
 
